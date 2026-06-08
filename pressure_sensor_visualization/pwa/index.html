@@ -140,7 +140,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14p
 </div>
 
 <div class="main">
-  <div style="font-weight:700;color:var(--accent);font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:8px;">历史记录 <span id="historyCount" style="color:var(--text2);font-size:11px;">0</span>条 <button class="btn-sm" onclick="refreshHistory()" style="background:var(--accent);font-size:10px;">刷新</button> <button class="btn-sm" onclick="resetToTest()" style="background:var(--success);font-size:10px;">新测试</button> <button class="btn-sm" onclick="importHistory()" style="background:var(--text2);font-size:10px;">导入</button> <button class="btn-sm" onclick="exportHistory()" style="background:var(--text2);font-size:10px;">导出</button></div>
+  <div style="font-weight:700;color:var(--accent);font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:8px;">历史记录 <span id="historyCount" style="color:var(--text2);font-size:11px;">0</span>条 <button class="btn-sm" onclick="refreshHistory()" style="background:var(--accent);font-size:10px;">刷新</button> <button class="btn-sm" onclick="resetToTest()" style="background:var(--success);font-size:10px;">新测试</button> <button class="btn-sm" onclick="loadSharedRecords()" style="background:var(--text2);font-size:10px;">加载共享</button> <button class="btn-sm" onclick="importHistory()" style="background:var(--text2);font-size:10px;">导入</button> <button class="btn-sm" onclick="exportHistory()" style="background:var(--text2);font-size:10px;">导出</button></div>
   <div id="historyCards"></div>
   <div id="heatmapWrap"><canvas id="heatmap" width="500" height="500"></canvas></div>
 </div>
@@ -747,15 +747,20 @@ function saveHistory() {
 }
 
 function loadHistory() {
-  var local = JSON.parse(localStorage.getItem('pillow_records') || '[]');
-  // Fetch shared repo records
+  var raw = localStorage.getItem('pillow_records');
+  historyRecords = raw ? JSON.parse(raw) : [];
+  refreshHistoryUI();
+}
+
+function loadSharedRecords() {
   fetch('data/records.json').then(function(r){ return r.json(); }).then(function(shared){
-    historyRecords = dedupeRecords(shared.concat(local));
-    refreshHistoryUI();
-  }).catch(function(){
-    historyRecords = local;
-    refreshHistoryUI();
-  });
+    if (!shared || !shared.length) { alert('没有共享记录'); return; }
+    var existing = JSON.parse(localStorage.getItem('pillow_records') || '[]');
+    existing = dedupeRecords(existing.concat(shared));
+    localStorage.setItem('pillow_records', JSON.stringify(existing));
+    loadHistory();
+    alert('已加载 ' + shared.length + ' 条共享记录');
+  }).catch(function(){ alert('加载失败，检查 data/records.json'); });
 }
 
 function dedupeRecords(records) {
@@ -774,6 +779,8 @@ function refreshHistory() { loadHistory(); }
 function refreshHistoryUI() {
   var records = historyRecords;
   var html = '';
+  for (var idx = records.length - 1; idx >= 0; idx--) {
+    var r = records[idx];
     var c = r.comfort || {};
     var score = parseInt(c.comfort_total) || 0;
     var cls = score >= 6 ? 'good' : (score >= 3 ? 'ok' : 'bad');
@@ -1006,6 +1013,15 @@ loadUsers();
 refreshHistory();
 updateComfortTotal();
 drawHeatmap(currentGrid);
+// Auto-load shared records on first visit or when file is newer
+  fetch('data/records.json').then(function(r){ return r.json(); }).then(function(shared){
+    if (shared && shared.length) {
+      var existing = JSON.parse(localStorage.getItem('pillow_records') || '[]');
+      var merged = dedupeRecords(existing.concat(shared));
+      localStorage.setItem('pillow_records', JSON.stringify(merged));
+      loadHistory();
+    }
+  }).catch(function(){});
 </script>
 </body>
 </html>
