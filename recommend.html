@@ -34,18 +34,21 @@ tr:hover td { background:#f8f9fb; }
 <body>
 <h1>枕头推荐系统</h1>
 <div class="card">
-  <div class="row"><label>被试ID:</label><select id="recUserId" onchange="onUserSelect()" style="flex:1;max-width:300px;"><option value="">手动输入</option></select> <button class="btn-primary" onclick="recommend()">推荐</button> <button class="btn-success" onclick="loadData()" style="margin-left:4px;">加载数据</button> <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span></div>
+  <h2>被试信息</h2>
+  <div class="row"><label>被试ID:</label><select id="recUserId" onchange="onUserSelect()" style="flex:1;max-width:300px;"><option value="">手动输入</option></select></div>
   <div class="row"><label>姓名:</label><input id="recName" readonly></div>
   <div class="row">
     <label>身高(cm):</label><input id="height" value="170" style="width:80px;">
     <label>体重(kg):</label><input id="weight" value="65" style="width:80px;">
     <label>肩宽(cm):</label><input id="shoulder" value="16" style="width:80px;">
   </div>
-  <div class="row"><label>颈椎曲度:</label><textarea id="neckCurveText" style="flex:1;height:60px;font-size:11px;font-family:monospace;" readonly></textarea></div>
+  <div class="row"><label>颈椎曲度:</label><textarea id="neckCurveText" style="flex:1;height:60px;font-size:11px;font-family:monospace;"></textarea></div>
   <div class="row"><label>曲度峰值:</label><input id="neckPeak" style="width:80px;" readonly><span style="font-size:11px;color:#636e72;">mm</span></div>
-  <div class="row">
-    <label>睡姿:</label><select id="sleepPos"><option>仰睡</option><option>侧睡</option></select>
-  </div>
+  <div class="row"><label>颈病史:</label><input id="recNeckHistory" readonly style="width:120px;"><label>颈痛:</label><input id="recNeckPain" readonly style="width:120px;"></div>
+  <div class="row"><label>睡姿:</label><select id="sleepPos"><option>仰睡</option><option>侧睡</option></select></div>
+  <button class="btn-primary" onclick="recommend()">开始推荐</button>
+  <button class="btn-success" onclick="loadData()" style="margin-left:8px;">加载数据</button>
+  <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span>
 </div>
 
 <div id="result">
