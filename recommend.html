@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>枕头推荐系统</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:"PingFang SC","Microsoft YaHei",sans-serif; background:#f5f7fa; color:#2d3436; padding:20px; }
+h1 { color:#3a86ff; margin-bottom:8px; }
+h2 { color:#3a86ff; font-size:14px; margin:12px 0 6px; }
+.card { background:#fff; border:1px solid #dfe6e9; border-radius:8px; padding:16px; margin-bottom:12px; }
+.row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.row label { color:#636e72; font-size:13px; min-width:60px; }
+input, select { font:13px "PingFang SC"; padding:6px 10px; border:1px solid #dfe6e9; border-radius:5px; background:#f0f2f5; }
+input:focus, select:focus { border-color:#3a86ff; outline:none; }
+button { cursor:pointer; font-size:13px; font-weight:600; padding:8px 20px; border:none; border-radius:6px; color:#fff; }
+.btn-primary { background:#3a86ff; }
+.btn-primary:hover { background:#5c9dff; }
+.btn-success { background:#00b894; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:#f0f2f5; padding:8px; text-align:left; font-size:12px; color:#636e72; }
+td { padding:8px; border-bottom:1px solid #dfe6e9; }
+tr:hover td { background:#f8f9fb; }
+.best { background:#e8fce8 !important; }
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-green { background:#00b894; color:#fff; }
+.badge-yellow { background:#fdcb6e; color:#2d3436; }
+.badge-red { background:#d63031; color:#fff; }
+.score-bar { height:6px; border-radius:3px; margin-top:2px; }
+#result { display:none; }
+</style>
+</head>
+<body>
+<h1>枕头推荐系统</h1>
+<div class="card">
+  <h2>输入被试信息</h2>
+  <div class="row"><label>被试ID:</label><select id="recUserId" onchange="onUserSelect()" style="flex:1;max-width:300px;"><option value="">手动输入</option></select></div>
+  <div class="row"><label>姓名:</label><input id="recName" readonly></div>
+  <div class="row">
+    <label>身高(cm):</label><input id="height" value="170" style="width:80px;">
+    <label>体重(kg):</label><input id="weight" value="65" style="width:80px;">
+    <label>肩宽(cm):</label><input id="shoulder" value="16" style="width:80px;">
+  </div>
+  <div class="row"><label>颈椎曲度:</label><textarea id="neckCurveText" style="flex:1;height:60px;font-size:11px;font-family:monospace;" readonly></textarea></div>
+  <div class="row"><label>曲度峰值:</label><input id="neckPeak" value="3.5" style="width:80px;" readonly><span style="font-size:11px;color:#636e72;">mm（自动计算）</span></div>
+  <div class="row">
+    <label>睡姿:</label><select id="sleepPos"><option>仰睡</option><option>侧睡</option></select>
+    <label>枕后高度需求:</label><input id="needHeadH" value="100" style="width:80px;"><span style="font-size:11px;color:#636e72;">mm</span>
+  </div>
+  <div class="row"><label>颈病史:</label><input id="recNeckHistory" readonly style="width:120px;"><label>颈痛:</label><input id="recNeckPain" readonly style="width:120px;"></div>
+  <button class="btn-primary" onclick="recommend()">开始推荐</button>
+  <button class="btn-success" onclick="loadData()" style="margin-left:8px;">加载数据</button>
+  <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span>
+</div>
+
+<div id="result">
+  <div class="card">
+    <h2>推荐结果 <span id="resultSummary" style="font-size:12px;color:#636e72;"></span></h2>
+    <table>
+      <thead><tr><th>排名</th><th>枕头ID</th><th>品牌型号</th><th>综合评分</th><th>评价</th><th>测试次数</th><th>匹配度</th></tr></thead>
+      <tbody id="resultBody"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h2>枕头详情对比</h2>
+    <table>
+      <thead><tr><th>枕头</th><th>材质</th><th>后脑勺高(mm)</th><th>颈椎高(mm)</th><th>硬度(HF)</th><th>尺寸</th><th>仰睡评分</th><th>侧睡评分</th></tr></thead>
+      <tbody id="detailBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+var allRecords = [];
+var pillowInfo = {};
+var userData = [];
+
+function loadData() {
+  var infoEl = document.getElementById('dataInfo');
+  infoEl.textContent = '加载中...';
+  
+  fetch('data/records.json').then(function(r){ return r.json(); }).then(function(records){
+    allRecords = records;
+    infoEl.textContent = '已加载 ' + records.length + ' 条测试记录';
+  }).catch(function(){
+    infoEl.textContent = '加载失败';
+  });
+
+  fetch('data/pillows.json').then(function(r){ return r.json(); }).then(function(pillows){
+    for (var i = 0; i < pillows.length; i++) pillowInfo[pillows[i].id] = pillows[i];
+  }).catch(function(){});
+
+  fetch('data/users.json').then(function(r){ return r.json(); }).then(function(users){
+    userData = users;
+    var sel = document.getElementById('recUserId');
+    for (var i = 0; i < users.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = users[i].id;
+      opt.textContent = users[i].id + ' - ' + users[i].name;
+      sel.appendChild(opt);
+    }
+  }).catch(function(){});
+}
+  }).catch(function(){});
+}
+
+function onUserSelect() {
+  var id = document.getElementById('recUserId').value;
+  var user = null;
+  for (var i = 0; i < userData.length; i++) {
+    if (userData[i].id === id) { user = userData[i]; break; }
+  }
+  if (user) {
+    document.getElementById('recName').value = user.name || '';
+    document.getElementById('height').value = user.height || 170;
+    document.getElementById('weight').value = user.weight || 65;
+    document.getElementById('shoulder').value = user.shoulder_width || 16;
+    document.getElementById('neckCurveText').value = user.neck_curve || '';
+    document.getElementById('recNeckHistory').value = user.neck_history || '';
+    document.getElementById('recNeckPain').value = user.neck_pain || '';
+    // Calculate peak
+    try {
+      var curve = JSON.parse(user.neck_curve || '[]');
+      var peak = 0;
+      for (var j = 0; j < curve.length; j++) peak = Math.max(peak, curve[j]);
+      document.getElementById('neckPeak').value = peak.toFixed(1);
+    } catch(e) { document.getElementById('neckPeak').value = 0; }
+  } else {
+    document.getElementById('recName').value = '';
+    document.getElementById('neckCurveText').value = '';
+  }
+}
+
+function recommend() {
+  if (!allRecords.length) { alert('请先点击"加载数据"'); return; }
+  
+  var height = parseFloat(document.getElementById('height').value) || 170;
+  var weight = parseFloat(document.getElementById('weight').value) || 65;
+  var shoulder = parseFloat(document.getElementById('shoulder').value) || 16;
+  var sleepPos = document.getElementById('sleepPos').value;
+  var neckPeak = parseFloat(document.getElementById('neckPeak').value) || 0;
+  var neckCurveText = document.getElementById('neckCurveText').value;
+  if (!neckPeak && neckCurveText) {
+    try {
+      var curve = JSON.parse(neckCurveText);
+      for (var j = 0; j < curve.length; j++) neckPeak = Math.max(neckPeak, curve[j]);
+    } catch(e) {}
+  }
+  var needHeadH = parseFloat(document.getElementById('needHeadH').value) || 100;
+
+  // Filter by sleep position
+  var matches = [];
+  for (var i = 0; i < allRecords.length; i++) {
+    if (allRecords[i].sleep_pos === sleepPos) matches.push(allRecords[i]);
+  }
+  if (matches.length < 3) matches = allRecords;
+
+  // Score each pillow
+  var pillowScores = {};
+  for (var i = 0; i < matches.length; i++) {
+    var r = matches[i];
+    var pid = r.pillow_id || '?';
+    if (!pillowScores[pid]) {
+      pillowScores[pid] = {
+        scores: [], totalWeight: 0, weightedSum: 0, count: 0,
+        users: {}, supineScores: [], sideScores: []
+      };
+    }
+    var p = pillowScores[pid];
+    
+    var comfort = r.comfort || {};
+    var score = parseFloat(comfort.comfort_total) || 3;
+    
+    // User similarity weight
+    var userSim = 1.0;
+    if (r.height) userSim *= 1.0 / (1.0 + Math.abs(height - parseFloat(r.height)) / 15);
+    if (r.weight) userSim *= 1.0 / (1.0 + Math.abs(weight - parseFloat(r.weight)) / 10);
+    if (r.shoulder_width) userSim *= 1.0 / (1.0 + Math.abs(shoulder - parseFloat(r.shoulder_width)) / 5);
+    
+    // Neck curve similarity
+    try {
+      var userCurve = JSON.parse(r.neck_curve||'[]');
+      var userPeak = 0;
+      for (var j = 0; j < userCurve.length; j++) userPeak = Math.max(userPeak, userCurve[j]);
+      userSim *= 1.0 / (1.0 + Math.abs(neckPeak - userPeak) / 3);
+    } catch(e) {}
+    
+    p.scores.push(score);
+    p.weightedSum += score * userSim;
+    p.totalWeight += userSim;
+    p.count++;
+    
+    // Track per-user
+    var uid = r.user_id || '?';
+    if (!p.users[uid]) p.users[uid] = [];
+    p.users[uid].push(score);
+    
+    // Track per sleep position
+    if (r.sleep_pos === '仰睡') p.supineScores.push(score);
+    if (r.sleep_pos === '侧睡') p.sideScores.push(score);
+  }
+
+  // Rank
+  var ranked = [];
+  for (var pid in pillowScores) {
+    var p = pillowScores[pid];
+    var weightedAvg = p.totalWeight > 0 ? p.weightedSum / p.totalWeight : 3;
+    var rawAvg = p.scores.reduce(function(a,b){return a+b;},0) / p.scores.length;
+    var info = pillowInfo[pid] || {};
+    
+    // Height match: how well pillow head_height matches user's need
+    var heightMatch = 0;
+    if (needHeadH > 0 && info.head_height) {
+      var diff = Math.abs(needHeadH - parseFloat(info.head_height));
+      heightMatch = Math.max(0, 1.0 - diff / 100);
+    }
+    
+    // Final score: 70% weighted avg + 20% raw avg + 10% height match
+    var finalScore = weightedAvg * 0.7 + rawAvg * 0.2 + heightMatch * 2; // scale to ~1-5
+    
+    ranked.push({
+      id: pid, brand: info.brand || r.brand || '',
+      material: info.material || '', size: info.size || '',
+      headH: info.head_height || '', neckH: info.neck_height || '',
+      hardness: info.center_hardness || '',
+      score: finalScore,
+      rawAvg: rawAvg,
+      weightedAvg: weightedAvg,
+      count: p.count,
+      supineAvg: p.supineScores.length ? p.supineScores.reduce(function(a,b){return a+b;},0)/p.supineScores.length : 0,
+      sideAvg: p.sideScores.length ? p.sideScores.reduce(function(a,b){return a+b;},0)/p.sideScores.length : 0,
+      userCount: Object.keys(p.users).length,
+      heightMatch: heightMatch
+    });
+  }
+  
+  ranked.sort(function(a,b){ return b.score - a.score; });
+
+  // Display results
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('resultSummary').textContent = '基于 ' + matches.length + ' 条' + sleepPos + '数据 | 身高' + height + 'cm ' + weight + 'kg 肩宽' + shoulder + 'cm';
+  
+  var html = '';
+  for (var i = 0; i < Math.min(10, ranked.length); i++) {
+    var r = ranked[i];
+    var cls = i === 0 ? 'best' : '';
+    var badge = r.score >= 4 ? '<span class="badge badge-green">推荐</span>' : (r.score >= 3 ? '<span class="badge badge-yellow">可选</span>' : '<span class="badge badge-red">不推荐</span>');
+    var label = r.score >= 4 ? '还不错' : (r.score >= 3 ? '能接受' : '不太舒服');
+    html += '<tr class="' + cls + '"><td>' + (i+1) + '</td><td>' + r.id + '</td><td>' + r.brand + '</td>';
+    html += '<td><b>' + r.score.toFixed(1) + '</b> ' + label + '</td><td>' + badge + '</td>';
+    html += '<td>' + r.count + '次 (' + r.userCount + '人)</td>';
+    html += '<td><div class="score-bar" style="width:' + Math.round(r.score*20) + 'px;background:' + (r.score>=4?'#00b894':r.score>=3?'#fdcb6e':'#d63031') + ';"></div></td></tr>';
+  }
+  document.getElementById('resultBody').innerHTML = html;
+
+  // Detail table
+  var dhtml = '';
+  for (var i = 0; i < Math.min(10, ranked.length); i++) {
+    var r = ranked[i];
+    dhtml += '<tr><td>' + r.id + ' ' + r.brand + '</td><td>' + r.material + '</td>';
+    dhtml += '<td>' + r.headH + '</td><td>' + r.neckH + '</td><td>' + r.hardness + '</td><td>' + r.size + '</td>';
+    dhtml += '<td>' + r.supineAvg.toFixed(1) + '</td><td>' + r.sideAvg.toFixed(1) + '</td></tr>';
+  }
+  document.getElementById('detailBody').innerHTML = dhtml;
+}
+
+// Auto-load on open
+loadData();
+</script>
+</body>
+</html>
