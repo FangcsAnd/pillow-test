@@ -36,19 +36,10 @@ tr:hover td { background:#f8f9fb; }
 <div class="card">
   <h2>输入被试信息</h2>
   <div class="row"><label>被试ID:</label><select id="recUserId" onchange="onUserSelect()" style="flex:1;max-width:300px;"><option value="">手动输入</option></select></div>
-  <div class="row"><label>姓名:</label><input id="recName" readonly></div>
-  <div class="row">
-    <label>身高(cm):</label><input id="height" value="170" style="width:80px;">
-    <label>体重(kg):</label><input id="weight" value="65" style="width:80px;">
-    <label>肩宽(cm):</label><input id="shoulder" value="16" style="width:80px;">
-  </div>
-  <div class="row"><label>颈椎曲度:</label><textarea id="neckCurveText" style="flex:1;height:60px;font-size:11px;font-family:monospace;" readonly></textarea></div>
-  <div class="row"><label>曲度峰值:</label><input id="neckPeak" value="3.5" style="width:80px;" readonly><span style="font-size:11px;color:#636e72;">mm（自动计算）</span></div>
-  <div class="row">
-    <label>睡姿:</label><select id="sleepPos"><option>仰睡</option><option>侧睡</option></select>
-    <label>枕后高度需求:</label><input id="needHeadH" value="100" style="width:80px;"><span style="font-size:11px;color:#636e72;">mm</span>
-  </div>
-  <div class="row"><label>颈病史:</label><input id="recNeckHistory" readonly style="width:120px;"><label>颈痛:</label><input id="recNeckPain" readonly style="width:120px;"></div>
+  <div class="row"><label>姓名:</label><input id="recName"></div>
+  <div class="row"><label>颈椎曲度:</label><textarea id="neckCurveText" style="flex:1;height:60px;font-size:11px;font-family:monospace;" placeholder="粘贴颈椎曲度数组"></textarea></div>
+  <div class="row"><label>曲度峰值:</label><input id="neckPeak" value="3.5" style="width:80px;"><span style="font-size:11px;color:#636e72;">mm</span></div>
+  <div class="row"><label>颈病史:</label><input id="recNeckHistory" style="width:120px;"><label>颈痛:</label><input id="recNeckPain" style="width:120px;"></div>
   <button class="btn-primary" onclick="recommend()">开始推荐</button>
   <button class="btn-success" onclick="loadData()" style="margin-left:8px;">加载数据</button>
   <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span>
@@ -102,8 +93,6 @@ function loadData() {
     }
   }).catch(function(){});
 }
-  }).catch(function(){});
-}
 
 function onUserSelect() {
   var id = document.getElementById('recUserId').value;
@@ -125,10 +114,12 @@ function onUserSelect() {
       var peak = 0;
       for (var j = 0; j < curve.length; j++) peak = Math.max(peak, curve[j]);
       document.getElementById('neckPeak').value = peak.toFixed(1);
-    } catch(e) { document.getElementById('neckPeak').value = 0; }
+    } catch(e) { document.getElementById('neckPeak').value = '3.5'; }
   } else {
-    document.getElementById('recName').value = '';
-    document.getElementById('neckCurveText').value = '';
+    ['recName','neckCurveText','recNeckHistory','recNeckPain'].forEach(function(f){
+      document.getElementById(f).value = '';
+    });
+    document.getElementById('neckPeak').value = '3.5';
   }
 }
 
