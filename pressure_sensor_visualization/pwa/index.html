@@ -113,17 +113,17 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14p
 
   <div class="card">
     <div class="card-title">舒适度评价</div>
-    <div class="row"><label>整体(-10~10):</label><input type="range" id="comfort_overall" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortOverallVal">0</span></div>
-    <div class="row"><label>仰睡(-10~10):</label><input type="range" id="comfort_supine" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortSupineVal">0</span></div>
-    <div class="row"><label>侧睡(-10~10):</label><input type="range" id="comfort_side" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortSideVal">0</span></div>
-    <div class="row"><label>颈部支撑:</label><input type="range" id="comfort_neck" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortNeckVal">0</span></div>
-    <div class="row"><label>头部包裹:</label><input type="range" id="comfort_head" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortHeadVal">0</span></div>
-    <div class="row"><label>压力均匀:</label><input type="range" id="comfort_even" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortEvenVal">0</span></div>
-    <div class="row"><label>入睡容易:</label><input type="range" id="comfort_fall" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortFallVal">0</span></div>
-    <div class="row"><label>翻身顺畅:</label><input type="range" id="comfort_turn" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortTurnVal">0</span></div>
-    <div class="row"><label>压迫感:</label><input type="range" id="comfort_pressure" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortPressureVal">0</span></div>
-    <div class="row"><label>闷热感:</label><input type="range" id="comfort_heat" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortHeatVal">0</span></div>
-    <div class="row"><label style="font-weight:700;color:var(--accent);">综合:</label><span id="comfortTotal" style="font-size:18px;font-weight:700;color:var(--accent);">0</span></div>
+    <div class="row"><label>整体舒适度:</label><select id="comfort_overall" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label>仰睡舒适度:</label><select id="comfort_supine" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label>侧睡舒适度:</label><select id="comfort_side" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label>颈部支撑感:</label><select id="comfort_neck" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label>头部包裹感:</label><select id="comfort_head" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label>压力均匀度:</label><select id="comfort_even" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label>入睡容易度:</label><select id="comfort_fall" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label>翻身顺畅度:</label><select id="comfort_turn" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label>压迫感:</label><select id="comfort_pressure" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label>闷热感:</label><select id="comfort_heat" onchange="updateComfortTotal()"><option value="1">严重不适</option><option value="2">不太舒服</option><option value="3" selected>能接受</option><option value="4">还不错</option><option value="5">超出期待</option></select></div>
+    <div class="row"><label style="font-weight:700;color:var(--accent);">综合:</label><span id="comfortTotal" style="font-size:18px;font-weight:700;color:var(--accent);">3</span></div>
   </div>
 
   <div class="card">
@@ -596,16 +596,32 @@ function onPillowSelect() {
 }
 
 function updateComfortTotal() {
-  var w = { overall:20, neck:15, head:10, supine:15, side:15, even:5, fall:5, turn:5, pressure:-5, heat:-5 };
+  var w = { overall:20, neck:15, head:10, supine:15, side:15, even:5, fall:5, turn:5, pressure:5, heat:5 };
   var ids = { overall:'comfort_overall', neck:'comfort_neck', head:'comfort_head', supine:'comfort_supine', side:'comfort_side', even:'comfort_even', fall:'comfort_fall', turn:'comfort_turn', pressure:'comfort_pressure', heat:'comfort_heat' };
-  var vids = { overall:'comfortOverallVal', neck:'comfortNeckVal', head:'comfortHeadVal', supine:'comfortSupineVal', side:'comfortSideVal', even:'comfortEvenVal', fall:'comfortFallVal', turn:'comfortTurnVal', pressure:'comfortPressureVal', heat:'comfortHeatVal' };
   var total = 0, tw = 0;
   for (var k in w) {
     var v = parseInt(document.getElementById(ids[k]).value);
-    document.getElementById(vids[k]).textContent = v;
-    total += v * w[k];
-    tw += Math.abs(w[k]);
+    total += v * w[k]; tw += w[k];
   }
+  var score = tw > 0 ? (total / tw).toFixed(1) : '3.0';
+  document.getElementById('comfortTotal').textContent = score;
+}
+
+function getComfortData() {
+  return {
+    comfort_overall: parseInt(document.getElementById('comfort_overall').value),
+    comfort_neck: parseInt(document.getElementById('comfort_neck').value),
+    comfort_head: parseInt(document.getElementById('comfort_head').value),
+    comfort_supine: parseInt(document.getElementById('comfort_supine').value),
+    comfort_side: parseInt(document.getElementById('comfort_side').value),
+    comfort_even: parseInt(document.getElementById('comfort_even').value),
+    comfort_fall: parseInt(document.getElementById('comfort_fall').value),
+    comfort_turn: parseInt(document.getElementById('comfort_turn').value),
+    comfort_pressure: parseInt(document.getElementById('comfort_pressure').value),
+    comfort_heat: parseInt(document.getElementById('comfort_heat').value),
+    comfort_total: parseFloat(document.getElementById('comfortTotal').textContent),
+  };
+}
   document.getElementById('comfortTotal').textContent = tw > 0 ? Math.round(total/tw) : 0;
 }
 
@@ -782,8 +798,8 @@ function refreshHistoryUI() {
   for (var idx = records.length - 1; idx >= 0; idx--) {
     var r = records[idx];
     var c = r.comfort || {};
-    var score = parseInt(c.comfort_total) || 0;
-    var cls = score >= 6 ? 'good' : (score >= 3 ? 'ok' : 'bad');
+    var score = parseFloat(c.comfort_total) || 3;
+    var cls = score >= 4 ? 'good' : (score >= 3 ? 'ok' : 'bad');
     html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
     html += '<div style="font-size:9px;opacity:0.8;">' + (r.time||'') + '</div>';
     html += '<div style="font-size:10px;font-weight:600;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
@@ -826,16 +842,16 @@ function showDetail(historyIdx) {
   document.getElementById('recEdgeHardnessR').value = r.pillow_edge_hardness_r || '';
 
   var c = r.comfort || {};
-  document.getElementById('comfort_overall').value = c.comfort_overall || 0;
-  document.getElementById('comfort_supine').value = c.comfort_supine || 0;
-  document.getElementById('comfort_side').value = c.comfort_side || 0;
-  document.getElementById('comfort_neck').value = c.comfort_neck || 0;
-  document.getElementById('comfort_head').value = c.comfort_head || 0;
-  document.getElementById('comfort_even').value = c.comfort_even || 0;
-  document.getElementById('comfort_fall').value = c.comfort_fall || 0;
-  document.getElementById('comfort_turn').value = c.comfort_turn || 0;
-  document.getElementById('comfort_pressure').value = c.comfort_pressure || 0;
-  document.getElementById('comfort_heat').value = c.comfort_heat || 0;
+  document.getElementById('comfort_overall').value = c.comfort_overall || 3;
+  document.getElementById('comfort_supine').value = c.comfort_supine || 3;
+  document.getElementById('comfort_side').value = c.comfort_side || 3;
+  document.getElementById('comfort_neck').value = c.comfort_neck || 3;
+  document.getElementById('comfort_head').value = c.comfort_head || 3;
+  document.getElementById('comfort_even').value = c.comfort_even || 3;
+  document.getElementById('comfort_fall').value = c.comfort_fall || 3;
+  document.getElementById('comfort_turn').value = c.comfort_turn || 3;
+  document.getElementById('comfort_pressure').value = c.comfort_pressure || 3;
+  document.getElementById('comfort_heat').value = c.comfort_heat || 3;
   updateComfortTotal();
 
   document.getElementById('recSleepPos').value = r.sleep_pos || '仰睡';
@@ -958,7 +974,7 @@ function resetToTest() {
   }
 
   var comfortIds = ['comfort_overall','comfort_supine','comfort_side','comfort_neck','comfort_head','comfort_even','comfort_fall','comfort_turn','comfort_pressure','comfort_heat'];
-  for (var f = 0; f < comfortIds.length; f++) document.getElementById(comfortIds[f]).value = 0;
+  for (var f = 0; f < comfortIds.length; f++) document.getElementById(comfortIds[f]).value = '3';
   updateComfortTotal();
 
   updateParams({max:0,avg:0,area:0,std:0,peak_pos:'(0,0)',peak_val:0,concentration:0,p95:0,gradient:0,head_ratio:0,neck_ratio:0,shoulder_ratio:0,neck_continuity:0,neck_gap:'无',center:'0%,0%'});
