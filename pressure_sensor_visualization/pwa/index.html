@@ -140,7 +140,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14p
 </div>
 
 <div class="main">
-  <div style="font-weight:700;color:var(--accent);font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:8px;">历史记录 <span id="historyCount" style="color:var(--text2);font-size:11px;">0</span>条 <button class="btn-sm" onclick="refreshHistory()" style="background:var(--accent);font-size:10px;">刷新</button> <button class="btn-sm" onclick="resetToTest()" style="background:var(--success);font-size:10px;">新测试</button> <button class="btn-sm" onclick="loadSharedRecords()" style="background:var(--text2);font-size:10px;">加载共享</button> <button class="btn-sm" onclick="importHistory()" style="background:var(--text2);font-size:10px;">导入</button> <button class="btn-sm" onclick="exportHistory()" style="background:var(--text2);font-size:10px;">导出</button></div>
+  <div style="font-weight:700;color:var(--accent);font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:8px;">历史记录 <span id="historyCount" style="color:var(--text2);font-size:11px;">0</span>条 <button class="btn-sm" onclick="refreshHistory()" style="background:var(--accent);font-size:10px;">刷新</button> <button class="btn-sm" onclick="resetToTest()" style="background:var(--success);font-size:10px;">新测试</button> <button class="btn-sm" onclick="loadSharedRecords()" style="background:var(--text2);font-size:10px;">加载共享</button> <button class="btn-sm" onclick="recommendPillow()" style="background:#fdcb6e;color:#2d3436;font-size:10px;">推荐</button> <button class="btn-sm" onclick="importHistory()" style="background:var(--text2);font-size:10px;">导入</button> <button class="btn-sm" onclick="exportHistory()" style="background:var(--text2);font-size:10px;">导出</button></div>
   <div id="historyCards"></div>
   <div id="heatmapWrap"><canvas id="heatmap" width="500" height="500"></canvas></div>
 </div>
@@ -649,6 +649,51 @@ function loadSharedRecords() {
     loadHistory();
     alert('已加载 ' + shared.length + ' 条共享记录');
   }).catch(function(){ alert('加载失败，检查 data/records.json'); });
+}
+
+function recommendPillow() {
+  fetch('data/records.json').then(function(r){ return r.json(); }).then(function(allRecords){
+    if (!allRecords || !allRecords.length) { alert('暂无数据可供推荐'); return; }
+    var uid = document.getElementById('recUserId').value;
+    var curUser = { height: parseFloat(document.getElementById('recHeight').value)||0, weight: parseFloat(document.getElementById('recWeight').value)||0, shoulder: parseFloat(document.getElementById('recShoulder').value)||0 };
+    var sleepPos = document.getElementById('recSleepPos').value;
+    
+    // Filter by sleep position
+    var matches = [];
+    for (var i = 0; i < allRecords.length; i++) {
+      if (allRecords[i].sleep_pos === sleepPos) matches.push(allRecords[i]);
+    }
+    if (!matches.length) matches = allRecords;
+
+    // Score each pillow
+    var pillowScores = {};
+    for (var i = 0; i < matches.length; i++) {
+      var r = matches[i];
+      var pid = r.pillow_id || '?';
+      if (!pillowScores[pid]) pillowScores[pid] = { brand: r.pillow_brand||'', scores: [], count: 0 };
+      var score = parseFloat((r.comfort||{}).comfort_total) || 3;
+      var w = 1.0;
+      // Weight by user similarity
+      if (curUser.height > 0 && r.height) w *= 1.0 / (1.0 + Math.abs(curUser.height - parseFloat(r.height)) / 20);
+      pillowScores[pid].scores.push(score * w);
+      pillowScores[pid].count++;
+    }
+
+    var ranked = [];
+    for (var k in pillowScores) {
+      var p = pillowScores[k];
+      var avg = p.scores.reduce(function(a,b){return a+b;},0) / p.scores.length;
+      ranked.push({id: k, brand: p.brand, score: avg, count: p.count});
+    }
+    ranked.sort(function(a,b){ return b.score - a.score; });
+
+    var html = '推荐结果（基于' + matches.length + '条' + sleepPos + '数据）：\n\n';
+    for (var i = 0; i < Math.min(5, ranked.length); i++) {
+      var label = ranked[i].score >= 4 ? '还不错' : (ranked[i].score >= 3 ? '能接受' : '不太舒服');
+      html += (i+1) + '. ' + ranked[i].id + ' ' + ranked[i].brand + ' 综合:' + ranked[i].score.toFixed(1) + ' ' + label + ' (' + ranked[i].count + '次)\n';
+    }
+    alert(html);
+  }).catch(function(){ alert('推荐失败，检查数据文件'); });
 }
 
 function dedupeRecords(records) {
