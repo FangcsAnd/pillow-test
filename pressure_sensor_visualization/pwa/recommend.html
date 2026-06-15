@@ -35,7 +35,6 @@ tr:hover td { background:#f8f9fb; }
 <h1>枕头推荐系统</h1>
 <div class="card">
   <h2>输入被试信息</h2>
-  <div class="row"><label>被试ID:</label><select id="recUserId" onchange="onUserSelect()" style="flex:1;max-width:300px;"><option value="">手动输入</option></select></div>
   <div class="row"><label>姓名:</label><input id="recName"></div>
   <div class="row"><label>颈椎曲度:</label><textarea id="neckCurveText" style="flex:1;height:60px;font-size:11px;font-family:monospace;" placeholder="粘贴颈椎曲度数组"></textarea></div>
   <div class="row"><label>曲度峰值:</label><input id="neckPeak" value="3.5" style="width:80px;"><span style="font-size:11px;color:#636e72;">mm</span></div>
@@ -65,7 +64,6 @@ tr:hover td { background:#f8f9fb; }
 <script>
 var allRecords = [];
 var pillowInfo = {};
-var userData = [];
 
 function loadData() {
   var infoEl = document.getElementById('dataInfo');
@@ -81,46 +79,6 @@ function loadData() {
   fetch('data/pillows.json').then(function(r){ return r.json(); }).then(function(pillows){
     for (var i = 0; i < pillows.length; i++) pillowInfo[pillows[i].id] = pillows[i];
   }).catch(function(){});
-
-  fetch('data/users.json').then(function(r){ return r.json(); }).then(function(users){
-    userData = users;
-    var sel = document.getElementById('recUserId');
-    for (var i = 0; i < users.length; i++) {
-      var opt = document.createElement('option');
-      opt.value = users[i].id;
-      opt.textContent = users[i].id + ' - ' + users[i].name;
-      sel.appendChild(opt);
-    }
-  }).catch(function(){});
-}
-
-function onUserSelect() {
-  var id = document.getElementById('recUserId').value;
-  var user = null;
-  for (var i = 0; i < userData.length; i++) {
-    if (userData[i].id === id) { user = userData[i]; break; }
-  }
-  if (user) {
-    document.getElementById('recName').value = user.name || '';
-    document.getElementById('height').value = user.height || 170;
-    document.getElementById('weight').value = user.weight || 65;
-    document.getElementById('shoulder').value = user.shoulder_width || 16;
-    document.getElementById('neckCurveText').value = user.neck_curve || '';
-    document.getElementById('recNeckHistory').value = user.neck_history || '';
-    document.getElementById('recNeckPain').value = user.neck_pain || '';
-    // Calculate peak
-    try {
-      var curve = JSON.parse(user.neck_curve || '[]');
-      var peak = 0;
-      for (var j = 0; j < curve.length; j++) peak = Math.max(peak, curve[j]);
-      document.getElementById('neckPeak').value = peak.toFixed(1);
-    } catch(e) { document.getElementById('neckPeak').value = '3.5'; }
-  } else {
-    ['recName','neckCurveText','recNeckHistory','recNeckPain'].forEach(function(f){
-      document.getElementById(f).value = '';
-    });
-    document.getElementById('neckPeak').value = '3.5';
-  }
 }
 
 function recommend() {
