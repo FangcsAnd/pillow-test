@@ -8,75 +8,57 @@
 * { box-sizing:border-box; margin:0; padding:0; }
 body { 
   font-family:"PingFang SC","Microsoft YaHei",sans-serif; 
-  color:#2d3436; padding:20px;
-  background: linear-gradient(135deg, #1a1a3e, #16213e, #0f3460, #1a1a3e);
-  background-size: 400% 400%;
-  animation: bgShift 20s ease infinite;
-  min-height:100vh;
-  position:relative; overflow-x:hidden;
-}
-@keyframes bgShift {
-  0% { background-position:0% 50%; }
-  50% { background-position:100% 50%; }
-  100% { background-position:0% 50%; }
-}
-/* Stars */
-.star {
-  position:fixed; border-radius:50%; background:#fff;
-  animation: twinkle var(--dur) ease-in-out infinite;
-  opacity:0;
-}
-@keyframes twinkle {
-  0%,100% { opacity:0; transform:scale(1); }
-  50% { opacity:0.8; transform:scale(1.5); }
+  color:#e8e8ed; padding:20px;
+  background: linear-gradient(180deg, #1a1a3e 0%, #2d1b4e 40%, #1c3a5c 70%, #15202d 100%);
+  min-height:100vh; position:relative; overflow-x:hidden;
 }
 /* Moon */
-.moon {
-  position:fixed; top:30px; right:80px; width:80px; height:80px;
-  border-radius:50%; background:radial-gradient(circle at 30% 30%, #ffeaa7, #fdcb6e);
-  box-shadow: 0 0 40px rgba(253,203,110,0.4), 0 0 80px rgba(253,203,110,0.2);
-  animation: moonGlow 4s ease-in-out infinite;
-}
-@keyframes moonGlow {
-  0%,100% { box-shadow: 0 0 40px rgba(253,203,110,0.4), 0 0 80px rgba(253,203,110,0.2); }
-  50% { box-shadow: 0 0 60px rgba(253,203,110,0.6), 0 0 100px rgba(253,203,110,0.3); }
-}
-/* Cloud */
-.cloud {
-  position:fixed; opacity:0.15;
-  animation: cloudFloat var(--dur2) linear infinite;
-}
-@keyframes cloudFloat {
-  0% { transform:translateX(0); }
-  100% { transform:translateX(calc(100vw + 200px)); }
-}
-h1 { color:#ffeaa7; margin-bottom:8px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-h2 { color:#74b9ff; font-size:14px; margin:12px 0 6px; }
-.card { 
-  background:rgba(255,255,255,0.92); border:1px solid rgba(255,255,255,0.3); 
-  border-radius:12px; padding:16px; margin-bottom:12px;
-  backdrop-filter:blur(10px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-}
+.moon { position:fixed; top:20px; right:60px; width:60px; height:60px; border-radius:50%; background:radial-gradient(circle at 30% 30%,#ffeaa7,#fdcb6e); box-shadow:0 0 30px rgba(253,203,110,0.3); animation:moonGlow 4s ease-in-out infinite; z-index:0; pointer-events:none; }
+@keyframes moonGlow { 0%,100%{box-shadow:0 0 30px rgba(253,203,110,0.3)} 50%{box-shadow:0 0 50px rgba(253,203,110,0.5)} }
+/* Stars */
+.star { position:fixed; border-radius:50%; background:#fff; animation:twinkle var(--dur) ease-in-out infinite; opacity:0; z-index:0; pointer-events:none; }
+@keyframes twinkle { 0%,100%{opacity:0;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+/* Clouds */
+.cloud { position:fixed; opacity:0.06; z-index:0; pointer-events:none; animation:cloudFloat var(--dur2) linear infinite; }
+@keyframes cloudFloat { 0%{transform:translateX(-100px)} 100%{transform:translateX(calc(100vw + 100px))} }
+/* Typography */
+h1 { color:#ffeaa7; margin-bottom:8px; font-size:22px; }
+h2 { color:rgba(255,255,255,0.55); font-size:12px; letter-spacing:0.5px; text-transform:uppercase; margin:12px 0 8px; font-weight:600; }
+/* Cards - frosted glass */
+.card { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px 16px; margin-bottom:12px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+/* Rows */
 .row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-.row label { color:#636e72; font-size:13px; min-width:60px; }
-input, select, textarea { font:13px "PingFang SC"; padding:6px 10px; border:1px solid #dfe6e9; border-radius:5px; background:rgba(240,242,245,0.9); }
-input:focus, select:focus { border-color:#3a86ff; outline:none; }
-button { cursor:pointer; font-size:13px; font-weight:600; padding:8px 20px; border:none; border-radius:6px; color:#fff; }
-.btn-primary { background:#3a86ff; }
-.btn-primary:hover { background:#5c9dff; }
-.btn-success { background:#00b894; }
-table { width:100%; border-collapse:collapse; font-size:13px; }
-th { background:#f0f2f5; padding:8px; text-align:left; font-size:12px; color:#636e72; }
-td { padding:8px; border-bottom:1px solid #dfe6e9; }
-tr:hover td { background:#f8f9fb; }
-.best { background:#e8fce8 !important; }
+.row label { color:rgba(255,255,255,0.5); font-size:12px; min-width:72px; text-align:right; flex-shrink:0; }
+.row input, .row select, .row textarea { flex:1; }
+/* Inputs */
+input, select, textarea { font:13px "PingFang SC"; padding:7px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.08); color:#fff; outline:none; transition:all 0.2s; }
+input:focus, select:focus, textarea:focus { border-color:rgba(100,210,255,0.5); background:rgba(255,255,255,0.12); box-shadow:0 0 0 3px rgba(100,210,255,0.1); }
+input[readonly] { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.45); }
+textarea::placeholder { color:rgba(255,255,255,0.3); }
+select { -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff80' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 8px center; padding-right:28px; }
+select option { background:#1c1c2e; color:#fff; }
+/* Buttons */
+button { font:13px "PingFang SC"; font-weight:600; border:none; border-radius:10px; padding:8px 16px; cursor:pointer; transition:all 0.2s; color:#fff; }
+button:hover { filter:brightness(1.1); transform:translateY(-1px); }
+button:active { transform:translateY(0); }
+.btn-primary { background:#64d2ff; color:#000; }
+.btn-primary:hover { background:#90e0ff; }
+.btn-success { background:#30d158; }
+/* Tables */
+table { width:100%; border-collapse:collapse; font-size:13px; color:rgba(255,255,255,0.8); }
+th { padding:8px; text-align:left; font-size:11px; color:rgba(255,255,255,0.45); border-bottom:1px solid rgba(255,255,255,0.1); }
+td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); }
+tr:hover td { background:rgba(255,255,255,0.04); }
+tr.best td { background:rgba(48,209,88,0.1) !important; }
+/* Badges */
 .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
-.badge-green { background:#00b894; color:#fff; }
-.badge-yellow { background:#fdcb6e; color:#2d3436; }
-.badge-red { background:#d63031; color:#fff; }
-.score-bar { height:6px; border-radius:3px; margin-top:2px; }
+.badge-green { background:#30d158; color:#000; }
+.badge-yellow { background:#fdcb6e; color:#000; }
+.badge-red { background:#ff453a; color:#fff; }
+.score-bar { height:4px; border-radius:2px; margin-top:2px; background:rgba(255,255,255,0.15); }
+.score-bar div { height:100%; border-radius:2px; }
 #result { display:none; }
+#dataInfo { color:rgba(255,255,255,0.4); }
 </style>
 </head>
 <body>
@@ -252,7 +234,7 @@ function recommend() {
     html += '<tr class="' + cls + '"><td>' + (i+1) + '</td><td>' + r.id + '</td><td>' + r.brand + '</td>';
     html += '<td><b>' + r.score.toFixed(1) + '</b> ' + label + '</td><td>' + badge + '</td>';
     html += '<td>' + r.count + '次 (' + r.userCount + '人)</td>';
-    html += '<td><div class="score-bar" style="width:' + Math.round(r.score*20) + 'px;background:' + (r.score>=4?'#00b894':r.score>=3?'#fdcb6e':'#d63031') + ';"></div></td></tr>';
+    html += '<td><div class="score-bar"><div style="width:' + Math.round(r.score*20) + 'px;background:' + (r.score>=4?'#30d158':r.score>=3?'#fdcb6e':'#ff453a') + ';"></div></div></td></tr>';
   }
   document.getElementById('resultBody').innerHTML = html;
 
@@ -272,27 +254,18 @@ loadData();
 
 // Generate stars
 var bgEl = document.getElementById('bgElements');
-for (var i = 0; i < 30; i++) {
-  var star = document.createElement('div');
-  star.className = 'star';
-  star.style.left = Math.random()*100 + '%';
-  star.style.top = Math.random()*60 + '%';
-  star.style.width = (1+Math.random()*3) + 'px';
-  star.style.height = star.style.width;
-  star.style.setProperty('--dur', (2+Math.random()*4) + 's');
-  star.style.animationDelay = Math.random()*3 + 's';
+for (var i = 0; i < 25; i++) {
+  var star = document.createElement('div'); star.className = 'star';
+  star.style.left = Math.random()*100 + '%'; star.style.top = Math.random()*60 + '%';
+  star.style.width = (1+Math.random()*3) + 'px'; star.style.height = star.style.width;
+  star.style.setProperty('--dur', (2+Math.random()*3) + 's'); star.style.animationDelay = Math.random()*2 + 's';
   bgEl.appendChild(star);
 }
-// Generate clouds
-var clouds = ['☁️','☁','☁️'];
-for (var i = 0; i < 4; i++) {
-  var cloud = document.createElement('div');
-  cloud.className = 'cloud';
-  cloud.style.fontSize = (60 + Math.random()*40) + 'px';
-  cloud.style.top = (10 + Math.random()*50) + '%';
-  cloud.style.left = -(Math.random()*200) + 'px';
-  cloud.style.setProperty('--dur2', (25 + Math.random()*30) + 's');
-  cloud.textContent = clouds[i%3];
+for (var i = 0; i < 3; i++) {
+  var cloud = document.createElement('div'); cloud.className = 'cloud'; cloud.textContent = '☁️';
+  cloud.style.fontSize = (50+Math.random()*30) + 'px';
+  cloud.style.top = (5+Math.random()*60) + '%'; cloud.style.left = -(Math.random()*200) + 'px';
+  cloud.style.setProperty('--dur2', (20+Math.random()*25) + 's');
   bgEl.appendChild(cloud);
 }
 </script>
