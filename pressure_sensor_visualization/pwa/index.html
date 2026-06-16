@@ -596,7 +596,7 @@ function onPillowSelect() {
 }
 
 function updateComfortTotal() {
-  var w = { overall:20, neck:15, head:10, supine:15, side:15, even:5, fall:5, turn:5, pressure:5, heat:5 };
+  var w = { overall:40, supine:25, side:25, neck:3, head:2, even:2, fall:1, turn:1, pressure:1, heat:0 };
   var ids = { overall:'comfort_overall', neck:'comfort_neck', head:'comfort_head', supine:'comfort_supine', side:'comfort_side', even:'comfort_even', fall:'comfort_fall', turn:'comfort_turn', pressure:'comfort_pressure', heat:'comfort_heat' };
   var total = 0, tw = 0;
   for (var k in w) {
