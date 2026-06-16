@@ -95,10 +95,11 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
       按最终分降序排列，取 Top 10
     </div>
   </div>
+<div id="result">
   <div class="card">
-    <h2>推荐结果 <span id="resultSummary" style="font-size:12px;color:#636e72;"></span></h2>
+    <h2>推荐结果 <span id="resultSummary" style="font-size:12px;color:rgba(255,255,255,0.4);"></span></h2>
     <table>
-      <thead><tr><th>排名</th><th>枕头ID</th><th>品牌型号</th><th>综合评分</th><th>评价</th><th>测试次数</th><th>匹配度</th></tr></thead>
+      <thead><tr><th>排名</th><th>枕头ID</th><th>品牌型号</th><th>综合评分</th><th>评价</th><th>测试次数</th><th>依据</th><th>匹配度</th></tr></thead>
       <tbody id="resultBody"></tbody>
     </table>
   </div>
@@ -251,7 +252,7 @@ function recommend() {
     var badge = r.score >= 4 ? '<span class="badge badge-green">推荐</span>' : (r.score >= 3 ? '<span class="badge badge-yellow">可选</span>' : '<span class="badge badge-red">不推荐</span>');
     var label = r.score >= 4 ? '还不错' : (r.score >= 3 ? '能接受' : '不太舒服');
     html += '<tr class="' + cls + '"><td>' + (i+1) + '</td><td>' + r.id + '</td><td>' + r.brand + '</td>';
-    html += '<td><b>' + r.score.toFixed(1) + '</b> ' + label + '</td><td>' + badge + '</td>';
+      html += '<td><b>' + r.score.toFixed(1) + '</b> ' + label + '</td><td>' + badge + '</td>';
     html += '<td>' + r.count + '次 (' + r.userCount + '人)</td>';
     // Reason
     var reasons = [];
