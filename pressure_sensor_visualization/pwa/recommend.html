@@ -234,7 +234,16 @@ function recommend() {
     html += '<tr class="' + cls + '"><td>' + (i+1) + '</td><td>' + r.id + '</td><td>' + r.brand + '</td>';
     html += '<td><b>' + r.score.toFixed(1) + '</b> ' + label + '</td><td>' + badge + '</td>';
     html += '<td>' + r.count + '次 (' + r.userCount + '人)</td>';
-    html += '<td><div class="score-bar"><div style="width:' + Math.round(r.score*20) + 'px;background:' + (r.score>=4?'#30d158':r.score>=3?'#fdcb6e':'#ff453a') + ';"></div></div></td></tr>';
+    // Reason
+    var reasons = [];
+    if (r.weightedAvg >= 4) reasons.push('高评分');
+    if (r.heightMatch > 0.7) reasons.push('高度匹配');
+    if (r.userCount >= 3) reasons.push('多人验证');
+    if (r.supineAvg >= 4) reasons.push('仰睡好');
+    if (r.sideAvg >= 4) reasons.push('侧睡好');
+    if (reasons.length === 0) reasons.push('数据有限');
+    html += '<td><span style="font-size:10px;color:rgba(255,255,255,0.4);">' + reasons.slice(0,3).join('·') + '</span></td>';
+    html += '<td><div class="score-bar"><div style="width:' + Math.round(r.score*20) + 'px;background:' + (r.score>=3.4?'#30d158':r.score>=2.6?'#fdcb6e':'#ff453a') + ';"></div></div></td></tr>';
   }
   document.getElementById('resultBody').innerHTML = html;
 
