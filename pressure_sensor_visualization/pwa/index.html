@@ -709,17 +709,27 @@ function dedupeRecords(records) {
 
 function refreshHistory() { loadHistory(); }
 
+function computeComfortLabel(c) {
+  var w = { overall:45, supine:25, side:25, neck:2, head:1, even:1, fall:0, turn:0, pressure:1, heat:0 };
+  var total = 0, tw = 0;
+  for (var k in w) {
+    var v = convertOldScore(c['comfort_' + k]);
+    total += v * w[k]; tw += w[k];
+  }
+  var score = tw > 0 ? total / tw : 3;
+  var label = score < 1.8 ? '很差(垃圾)' : (score < 2.6 ? '差(不太舒服)' : (score < 3.4 ? '能接受' : (score < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
+  return { score: score, label: label };
+}
+
 function refreshHistoryUI() {
   var records = historyRecords;
   var html = '';
   for (var idx = records.length - 1; idx >= 0; idx--) {
     var r = records[idx];
     var c = r.comfort || {};
-    var score = parseFloat(c.comfort_total);
-    if (isNaN(score)) score = 3;
-    // Convert old -10~10 scores to 1-5 scale
-    if (score < 1 && score > -11) score = convertOldScore(score);
-    var label = score < 1.8 ? '很差(垃圾)' : (score < 2.6 ? '差(不太舒服)' : (score < 3.4 ? '能接受' : (score < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
+    var cl = computeComfortLabel(c);
+    var score = cl.score;
+    var label = cl.label;
     var cls = score >= 4 ? 'good' : (score >= 3 ? 'ok' : 'bad');
     html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
     html += '<div style="font-size:9px;opacity:0.8;">' + (r.time||'') + '</div>';
@@ -783,12 +793,9 @@ function showDetail(historyIdx) {
   document.getElementById('comfort_pressure').value = convertOldScore(c.comfort_pressure);
   document.getElementById('comfort_heat').value = convertOldScore(c.comfort_heat);
   updateComfortTotal();
-  // Override with stored label so it matches history card
-  var storedScore = parseFloat(c.comfort_total);
-  if (isNaN(storedScore)) storedScore = 3;
-  if (storedScore < 1 && storedScore > -11) storedScore = convertOldScore(storedScore);
-  var storedLabel = storedScore < 1.8 ? '很差(垃圾)' : (storedScore < 2.6 ? '差(不太舒服)' : (storedScore < 3.4 ? '能接受' : (storedScore < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
-  document.getElementById('comfortTotal').textContent = storedLabel;
+  // Override with recalculated label using new weights
+  var cl = computeComfortLabel(c);
+  document.getElementById('comfortTotal').textContent = cl.label;
 
   document.getElementById('recSleepPos').value = r.sleep_pos || '仰睡';
   document.getElementById('recNote').value = r.note || '';
