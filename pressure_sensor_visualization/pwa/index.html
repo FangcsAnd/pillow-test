@@ -6,39 +6,28 @@
 <title>枕头压力测试系统</title>
 <style>
 :root {
-  --bg: #f5f7fa; --card: #fff; --input: #f0f2f5; --accent: #3a86ff;
-  --accent-hover: #5c9dff; --text: #2d3436; --text2: #636e72;
-  --border: #dfe6e9; --success: #00b894; --danger: #d63031; --radius: 8px;
+  --bg: #16213e; --card: rgba(255,255,255,0.92); --input: rgba(240,242,245,0.85); --accent: #74b9ff;
+  --accent-hover: #a8d8ff; --text: #2d3436; --text2: #636e72;
+  --border: rgba(223,230,233,0.6); --success: #00b894; --danger: #d63031; --radius: 8px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font: 13px "PingFang SC","Microsoft YaHei",sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; }
-#sidebar { width: 340px; padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; border-right: 1px solid var(--border); flex-shrink: 0; }
-.main { flex: 1; display: flex; flex-direction: column; padding: 10px; overflow: hidden; }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; }
+body { font: 13px "PingFang SC","Microsoft YaHei",sans-serif; color: var(--text); height: 100vh; display: flex; 
+  background: linear-gradient(135deg, #1a1a3e, #16213e, #0f3460, #1a1a3e);
+  background-size: 400% 400%; animation: bgShift2 20s ease infinite; position:relative; overflow:hidden; }
+@keyframes bgShift2 { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+#sidebar { width: 340px; padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; border-right: 1px solid var(--border); flex-shrink: 0; position:relative; z-index:1; }
+.main { flex: 1; display: flex; flex-direction: column; padding: 10px; overflow: hidden; position:relative; z-index:1; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; backdrop-filter:blur(10px); }
 .card-title { font-weight: 700; color: var(--accent); margin-bottom: 6px; font-size: 13px; }
-.row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.row label { color: var(--text2); font-size: 12px; min-width: 70px; text-align: right; }
-input, select, button { font: inherit; border-radius: 5px; border: 1px solid var(--border); padding: 5px 8px; background: var(--input); color: var(--text); outline: none; }
-input:focus, select:focus { border-color: var(--accent); }
-button { cursor: pointer; font-weight: 600; border: none; padding: 7px 14px; color: #fff; }
-input[readonly] { background: #f8f9fb; color: var(--text2); }
-.btn-connect { background: var(--success); }
-.btn-connect:hover { background: #00d2a4; }
-.btn-connect.active { background: var(--danger); }
-.btn-connect.active:hover { background: #e74c3c; }
-.btn-primary { background: var(--accent); }
-.btn-primary:hover { background: var(--accent-hover); }
-.btn-sm { padding: 3px 8px; font-size: 11px; }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-input[type="range"] { -webkit-appearance: none; height: 5px; border-radius: 3px; background: var(--input); flex: 1; border: none; padding: 0; }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; }
-.param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
-.param-item { display: flex; align-items: center; font-size: 11px; }
-.param-item .pn { color: var(--text2); min-width: 68px; }
-.param-item .pv { color: var(--accent); font-weight: 700; }
-.param-item .help { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: #dfe6e9; color: #636e72; font-size: 9px; cursor: pointer; border: none; margin-right: 2px; }
 .status { font-size: 11px; color: var(--text2); padding: 6px 8px; background: var(--input); border-radius: 5px; }
 .status.connected { color: var(--success); }
+/* bg elements */
+.moon2 { position:fixed; top:20px; right:50px; width:60px; height:60px; border-radius:50%; background:radial-gradient(circle at 30% 30%,#ffeaa7,#fdcb6e); box-shadow:0 0 30px rgba(253,203,110,0.3); animation:moonGlow2 4s ease-in-out infinite; z-index:0; }
+@keyframes moonGlow2 { 0%,100%{box-shadow:0 0 30px rgba(253,203,110,0.3)} 50%{box-shadow:0 0 50px rgba(253,203,110,0.5)} }
+.star2 { position:fixed; border-radius:50%; background:#fff; animation:twinkle2 var(--d) ease-in-out infinite; opacity:0; z-index:0; }
+@keyframes twinkle2 { 0%,100%{opacity:0;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.3)} }
+.cloud2 { position:fixed; opacity:0.1; z-index:0; animation:cloudFloat2 var(--d2) linear infinite; }
+@keyframes cloudFloat2 { 0%{transform:translateX(0)} 100%{transform:translateX(calc(100vw + 200px))} }
 .comfort-val { font-size: 10px; color: var(--accent); font-weight: 700; min-width: 16px; text-align: center; }
 #historyCards { display: flex; gap: 6px; overflow-x: auto; padding: 6px; flex-shrink: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); min-height: 82px; }
 .history-row { flex-shrink: 0; width: 140px; padding: 8px 10px; font-size: 11px; border-radius: 6px; cursor: pointer; color: #fff; display: flex; flex-direction: column; gap: 2px; }
@@ -58,6 +47,8 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14p
 </style>
 </head>
 <body>
+<div class="moon2"></div>
+<div id="bgStars"></div>
 <div id="sidebar">
   <div class="card">
     <div class="card-title">串口设置</div>
@@ -989,6 +980,24 @@ drawHeatmap(currentGrid);
       loadHistory();
     }
   }).catch(function(){});
+// Generate background effects
+var bgEl = document.getElementById('bgStars');
+for (var i = 0; i < 25; i++) {
+  var s = document.createElement('div'); s.className = 'star2';
+  s.style.left = Math.random()*100 + '%'; s.style.top = Math.random()*70 + '%';
+  s.style.width = (1+Math.random()*3) + 'px'; s.style.height = s.style.width;
+  s.style.setProperty('--d', (2+Math.random()*3) + 's');
+  s.style.animationDelay = Math.random()*2 + 's';
+  bgEl.appendChild(s);
+}
+for (var i = 0; i < 3; i++) {
+  var c = document.createElement('div'); c.className = 'cloud2'; c.textContent = '☁️';
+  c.style.fontSize = (50+Math.random()*30) + 'px';
+  c.style.top = (5+Math.random()*60) + '%';
+  c.style.left = -(Math.random()*200) + 'px';
+  c.style.setProperty('--d2', (20+Math.random()*25) + 's');
+  bgEl.appendChild(c);
+}
 </script>
 </body>
 </html>
