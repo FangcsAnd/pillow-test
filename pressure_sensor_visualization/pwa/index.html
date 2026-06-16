@@ -567,10 +567,8 @@ function drawNeckCurve(data) {
   ctxN.clearRect(0, 0, can.width, can.height);
   if (!data || data.length < 2) return;
   var w = can.width - 20, h = can.height - 20, ox = 18, oy = 4;
-  var maxVal = 0;
-  for (var i = 0; i < data.length; i++) if (data[i] > maxVal) maxVal = data[i];
-  if (maxVal === 0) return;
-  ctxN.font = '8px "PingFang SC"'; ctxN.fillStyle = '#636e72'; ctxN.strokeStyle = '#dfe6e9'; ctxN.lineWidth = 0.5;
+  var maxVal = 5;
+  ctxN.font = '8px "PingFang SC"'; ctxN.fillStyle = 'rgba(255,255,255,0.5)'; ctxN.strokeStyle = 'rgba(255,255,255,0.1)'; ctxN.lineWidth = 0.5;
   var stepY = h / (data.length - 1);
   for (var i = 0; i < data.length; i += Math.max(1, Math.floor(data.length/5))) {
     var y = oy + i*stepY;
@@ -583,13 +581,13 @@ function drawNeckCurve(data) {
     ctxN.beginPath(); ctxN.moveTo(x, oy); ctxN.lineTo(x, oy+h); ctxN.stroke();
     ctxN.fillText(v, x-6, oy+h+8);
   }
-  ctxN.strokeStyle = '#3a86ff'; ctxN.lineWidth = 1.5; ctxN.beginPath();
+  ctxN.strokeStyle = '#64d2ff'; ctxN.lineWidth = 1.5; ctxN.beginPath();
   for (var i = 0; i < data.length; i++) {
     var x = ox + w - (data[i]/maxVal)*w, y = oy + i*stepY;
     if (i === 0) ctxN.moveTo(x, y); else ctxN.lineTo(x, y);
   }
   ctxN.stroke();
-  ctxN.fillStyle = 'rgba(58,134,255,0.12)'; ctxN.beginPath();
+  ctxN.fillStyle = 'rgba(100,210,255,0.15)'; ctxN.beginPath();
   ctxN.moveTo(ox+w, oy);
   for (var i = 0; i < data.length; i++) ctxN.lineTo(ox+w - (data[i]/maxVal)*w, oy + i*stepY);
   ctxN.lineTo(ox+w, oy+h); ctxN.closePath(); ctxN.fill();
