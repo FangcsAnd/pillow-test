@@ -17,7 +17,7 @@ body { font: 13px "PingFang SC","Microsoft YaHei",sans-serif; color: var(--text)
 @keyframes bgShift3 { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
 #sidebar { width: 340px; padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; border-right: 1px solid var(--border); flex-shrink: 0; position:relative; z-index:1; }
 .main { flex: 1; display: flex; flex-direction: column; padding: 10px; overflow: hidden; position:relative; z-index:1; }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; }
+.card { background: rgba(255,255,255,0.95); border: 1px solid rgba(223,230,233,0.5); border-radius: var(--radius); padding: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 .card-title { font-weight: 700; color: var(--accent); margin-bottom: 6px; font-size: 13px; }
 .status { font-size: 11px; color: var(--text2); padding: 6px 8px; background: var(--input); border-radius: 5px; }
 .status.connected { color: var(--success); }
