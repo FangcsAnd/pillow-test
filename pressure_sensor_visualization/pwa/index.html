@@ -41,13 +41,35 @@ body { font: 13px "PingFang SC","Microsoft YaHei",sans-serif; color: var(--text)
 #historyCards::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 #heatmapWrap { flex: 1; display: flex; align-items: center; justify-content: center; }
 #heatmap { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
-#helpPopup { display: none; position: absolute; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 12px; max-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; color: var(--text); }
-input, select { background: rgba(255,255,255,0.9); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; transition: all 0.2s; }
-input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(58,134,255,0.12); }
-button { transition: all 0.2s; }
-button:hover { transform: translateY(-1px); }
-input[readonly] { background: rgba(248,249,251,0.7); color: var(--text2); }
-#historyCards { border-radius: var(--radius); background: rgba(255,255,255,0.9); }
+/* iOS-style inputs */
+input, select, textarea { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #fff; outline: none; transition: all 0.2s; }
+input:focus, select:focus, textarea:focus { border-color: rgba(100,210,255,0.5); background: rgba(255,255,255,0.12); box-shadow: 0 0 0 3px rgba(100,210,255,0.1); }
+input[readonly] { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.45); }
+select { -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff80' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+select option { background: #1c1c2e; color: #fff; }
+/* iOS-style buttons */
+button { font: inherit; font-weight: 600; border: none; border-radius: 10px; padding: 8px 16px; cursor: pointer; transition: all 0.2s; color: #fff; }
+button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-sm { padding: 4px 10px; font-size: 10px; border-radius: 6px; }
+.btn-connect { background: var(--success); }
+.btn-connect.active { background: var(--danger); }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { filter: brightness(1.15); }
+/* iOS-style checkbox */
+input[type="checkbox"] { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 5px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.08); cursor: pointer; position: relative; padding: 0; margin: 0; }
+input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 5px; top: 2px; width: 5px; height: 9px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+/* iOS-style slider */
+input[type="range"] { -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); padding: 0; border: none; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.3); cursor: pointer; }
+/* Row labels */
+.row label { color: rgba(255,255,255,0.55); font-size: 12px; min-width: 70px; text-align: right; }
+/* History cards area */
+#historyCards { border-radius: var(--radius); background: rgba(255,255,255,0.08); }
+/* Param grid */
+.param-item .pn { color: rgba(255,255,255,0.5); }
+.param-item .pv { color: var(--accent); }
+.param-item .help { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); font-size: 9px; cursor: pointer; border: none; margin-right: 2px; }
 </style>
 </head>
 <body>
