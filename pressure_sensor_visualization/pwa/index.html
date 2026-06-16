@@ -6,19 +6,18 @@
 <title>枕头压力测试系统</title>
 <style>
 :root {
-  --bg: #f5f7fa; --card: #fff; --input: #f0f2f5; --accent: #3a86ff;
-  --accent-hover: #5c9dff; --text: #2d3436; --text2: #636e72;
-  --border: #dfe6e9; --success: #00b894; --danger: #d63031; --radius: 8px;
+  --bg: #1c1c2e; --card: rgba(255,255,255,0.12); --input: rgba(255,255,255,0.1); --accent: #64d2ff;
+  --accent-hover: #90e0ff; --text: #e8e8ed; --text2: rgba(255,255,255,0.55);
+  --border: rgba(255,255,255,0.12); --success: #30d158; --danger: #ff453a; --radius: 12px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font: 13px "PingFang SC","Microsoft YaHei",sans-serif; color: var(--text); height: 100vh; display: flex; 
-  background: linear-gradient(135deg, #1a1a3e, #16213e, #0f3460, #1a1a3e);
-  background-size: 400% 400%; animation: bgShift3 20s ease infinite; position:relative; overflow:hidden; }
-@keyframes bgShift3 { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+  background: linear-gradient(180deg, #1a1a3e 0%, #2d1b4e 40%, #1c3a5c 70%, #15202d 100%);
+  position:relative; overflow:hidden; }
 #sidebar { width: 340px; padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; border-right: 1px solid var(--border); flex-shrink: 0; position:relative; z-index:1; }
 .main { flex: 1; display: flex; flex-direction: column; padding: 10px; overflow: hidden; position:relative; z-index:1; }
-.card { background: rgba(255,255,255,0.95); border: 1px solid rgba(223,230,233,0.5); border-radius: var(--radius); padding: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.card-title { font-weight: 700; color: var(--accent); margin-bottom: 6px; font-size: 13px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+.card-title { font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 8px; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
 .status { font-size: 11px; color: var(--text2); padding: 6px 8px; background: var(--input); border-radius: 5px; }
 .status.connected { color: var(--success); }
 .moon-bg { position:fixed; top:20px; right:50px; width:60px; height:60px; border-radius:50%; background:radial-gradient(circle at 30% 30%,#ffeaa7,#fdcb6e); box-shadow:0 0 30px rgba(253,203,110,0.3); animation:moonB 4s ease-in-out infinite; z-index:0; pointer-events:none; }
