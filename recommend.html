@@ -121,7 +121,7 @@ function recommend() {
     
     // For score, use weighted: overall 40%, supine 25%, side 25%, rest low
     var comfort = r.comfort || {};
-    var score = (parseFloat(comfort.comfort_overall)||3)*0.4 + (parseFloat(comfort.comfort_supine)||3)*0.25 + (parseFloat(comfort.comfort_side)||3)*0.25;
+    var score = (parseFloat(comfort.comfort_overall)||3)*0.45 + (parseFloat(comfort.comfort_supine)||3)*0.25 + (parseFloat(comfort.comfort_side)||3)*0.25;
     var rawScore = parseFloat(comfort.comfort_total) || score;
     
     // User similarity weight
