@@ -715,8 +715,11 @@ function refreshHistoryUI() {
   for (var idx = records.length - 1; idx >= 0; idx--) {
     var r = records[idx];
     var c = r.comfort || {};
-    var score = parseFloat(c.comfort_total) || 3;
-    var label = score < 1.8 ? '严重不适' : (score < 2.6 ? '不太舒服' : (score < 3.4 ? '能接受' : (score < 4.2 ? '还不错' : '超出期待')));
+    var score = parseFloat(c.comfort_total);
+    if (isNaN(score)) score = 3;
+    // Convert old -10~10 scores to 1-5 scale
+    if (score < 1 && score > -11) score = convertOldScore(score);
+    var label = score < 1.8 ? '很差(垃圾)' : (score < 2.6 ? '差(不太舒服)' : (score < 3.4 ? '能接受' : (score < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
     var cls = score >= 4 ? 'good' : (score >= 3 ? 'ok' : 'bad');
     html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
     html += '<div style="font-size:9px;opacity:0.8;">' + (r.time||'') + '</div>';
@@ -729,6 +732,15 @@ function refreshHistoryUI() {
   }
   document.getElementById('historyCards').innerHTML = html;
   document.getElementById('historyCount').textContent = records.length;
+}
+
+function convertOldScore(v) {
+  if (v === undefined || v === null) return 3;
+  if (v <= -5) return 1;
+  if (v <= -1) return 2;
+  if (v <= 3) return 3;
+  if (v <= 7) return 4;
+  return 5;
 }
 
 function showDetail(historyIdx) {
@@ -760,16 +772,16 @@ function showDetail(historyIdx) {
   document.getElementById('recEdgeHardnessR').value = r.pillow_edge_hardness_r || '';
 
   var c = r.comfort || {};
-  document.getElementById('comfort_overall').value = c.comfort_overall || 3;
-  document.getElementById('comfort_supine').value = c.comfort_supine || 3;
-  document.getElementById('comfort_side').value = c.comfort_side || 3;
-  document.getElementById('comfort_neck').value = c.comfort_neck || 3;
-  document.getElementById('comfort_head').value = c.comfort_head || 3;
-  document.getElementById('comfort_even').value = c.comfort_even || 3;
-  document.getElementById('comfort_fall').value = c.comfort_fall || 3;
-  document.getElementById('comfort_turn').value = c.comfort_turn || 3;
-  document.getElementById('comfort_pressure').value = c.comfort_pressure || 3;
-  document.getElementById('comfort_heat').value = c.comfort_heat || 3;
+  document.getElementById('comfort_overall').value = convertOldScore(c.comfort_overall);
+  document.getElementById('comfort_supine').value = convertOldScore(c.comfort_supine);
+  document.getElementById('comfort_side').value = convertOldScore(c.comfort_side);
+  document.getElementById('comfort_neck').value = convertOldScore(c.comfort_neck);
+  document.getElementById('comfort_head').value = convertOldScore(c.comfort_head);
+  document.getElementById('comfort_even').value = convertOldScore(c.comfort_even);
+  document.getElementById('comfort_fall').value = convertOldScore(c.comfort_fall);
+  document.getElementById('comfort_turn').value = convertOldScore(c.comfort_turn);
+  document.getElementById('comfort_pressure').value = convertOldScore(c.comfort_pressure);
+  document.getElementById('comfort_heat').value = convertOldScore(c.comfort_heat);
   updateComfortTotal();
 
   document.getElementById('recSleepPos').value = r.sleep_pos || '仰睡';
