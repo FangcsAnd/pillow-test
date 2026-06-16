@@ -783,6 +783,12 @@ function showDetail(historyIdx) {
   document.getElementById('comfort_pressure').value = convertOldScore(c.comfort_pressure);
   document.getElementById('comfort_heat').value = convertOldScore(c.comfort_heat);
   updateComfortTotal();
+  // Override with stored label so it matches history card
+  var storedScore = parseFloat(c.comfort_total);
+  if (isNaN(storedScore)) storedScore = 3;
+  if (storedScore < 1 && storedScore > -11) storedScore = convertOldScore(storedScore);
+  var storedLabel = storedScore < 1.8 ? '很差(垃圾)' : (storedScore < 2.6 ? '差(不太舒服)' : (storedScore < 3.4 ? '能接受' : (storedScore < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
+  document.getElementById('comfortTotal').textContent = storedLabel;
 
   document.getElementById('recSleepPos').value = r.sleep_pos || '仰睡';
   document.getElementById('recNote').value = r.note || '';
