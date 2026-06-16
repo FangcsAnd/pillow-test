@@ -6,13 +6,61 @@
 <title>枕头推荐系统</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:"PingFang SC","Microsoft YaHei",sans-serif; background:#f5f7fa; color:#2d3436; padding:20px; }
-h1 { color:#3a86ff; margin-bottom:8px; }
-h2 { color:#3a86ff; font-size:14px; margin:12px 0 6px; }
-.card { background:#fff; border:1px solid #dfe6e9; border-radius:8px; padding:16px; margin-bottom:12px; }
+body { 
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif; 
+  color:#2d3436; padding:20px;
+  background: linear-gradient(135deg, #1a1a3e, #16213e, #0f3460, #1a1a3e);
+  background-size: 400% 400%;
+  animation: bgShift 20s ease infinite;
+  min-height:100vh;
+  position:relative; overflow-x:hidden;
+}
+@keyframes bgShift {
+  0% { background-position:0% 50%; }
+  50% { background-position:100% 50%; }
+  100% { background-position:0% 50%; }
+}
+/* Stars */
+.star {
+  position:fixed; border-radius:50%; background:#fff;
+  animation: twinkle var(--dur) ease-in-out infinite;
+  opacity:0;
+}
+@keyframes twinkle {
+  0%,100% { opacity:0; transform:scale(1); }
+  50% { opacity:0.8; transform:scale(1.5); }
+}
+/* Moon */
+.moon {
+  position:fixed; top:30px; right:80px; width:80px; height:80px;
+  border-radius:50%; background:radial-gradient(circle at 30% 30%, #ffeaa7, #fdcb6e);
+  box-shadow: 0 0 40px rgba(253,203,110,0.4), 0 0 80px rgba(253,203,110,0.2);
+  animation: moonGlow 4s ease-in-out infinite;
+}
+@keyframes moonGlow {
+  0%,100% { box-shadow: 0 0 40px rgba(253,203,110,0.4), 0 0 80px rgba(253,203,110,0.2); }
+  50% { box-shadow: 0 0 60px rgba(253,203,110,0.6), 0 0 100px rgba(253,203,110,0.3); }
+}
+/* Cloud */
+.cloud {
+  position:fixed; opacity:0.15;
+  animation: cloudFloat var(--dur2) linear infinite;
+}
+@keyframes cloudFloat {
+  0% { transform:translateX(0); }
+  100% { transform:translateX(calc(100vw + 200px)); }
+}
+h1 { color:#ffeaa7; margin-bottom:8px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+h2 { color:#74b9ff; font-size:14px; margin:12px 0 6px; }
+.card { 
+  background:rgba(255,255,255,0.92); border:1px solid rgba(255,255,255,0.3); 
+  border-radius:12px; padding:16px; margin-bottom:12px;
+  backdrop-filter:blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
 .row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
 .row label { color:#636e72; font-size:13px; min-width:60px; }
-input, select { font:13px "PingFang SC"; padding:6px 10px; border:1px solid #dfe6e9; border-radius:5px; background:#f0f2f5; }
+input, select, textarea { font:13px "PingFang SC"; padding:6px 10px; border:1px solid #dfe6e9; border-radius:5px; background:rgba(240,242,245,0.9); }
 input:focus, select:focus { border-color:#3a86ff; outline:none; }
 button { cursor:pointer; font-size:13px; font-weight:600; padding:8px 20px; border:none; border-radius:6px; color:#fff; }
 .btn-primary { background:#3a86ff; }
@@ -32,7 +80,9 @@ tr:hover td { background:#f8f9fb; }
 </style>
 </head>
 <body>
-<h1>枕头推荐系统</h1>
+<div class="moon"></div>
+<div id="bgElements"></div>
+<div style="position:relative;z-index:1;max-width:800px;margin:0 auto;"><h1>枕头推荐系统</h1>
 <div class="card">
   <h2>输入被试信息</h2>
   <div class="row">
@@ -219,6 +269,33 @@ function recommend() {
 
 // Auto-load on open
 loadData();
+
+// Generate stars
+var bgEl = document.getElementById('bgElements');
+for (var i = 0; i < 30; i++) {
+  var star = document.createElement('div');
+  star.className = 'star';
+  star.style.left = Math.random()*100 + '%';
+  star.style.top = Math.random()*60 + '%';
+  star.style.width = (1+Math.random()*3) + 'px';
+  star.style.height = star.style.width;
+  star.style.setProperty('--dur', (2+Math.random()*4) + 's');
+  star.style.animationDelay = Math.random()*3 + 's';
+  bgEl.appendChild(star);
+}
+// Generate clouds
+var clouds = ['☁️','☁','☁️'];
+for (var i = 0; i < 4; i++) {
+  var cloud = document.createElement('div');
+  cloud.className = 'cloud';
+  cloud.style.fontSize = (60 + Math.random()*40) + 'px';
+  cloud.style.top = (10 + Math.random()*50) + '%';
+  cloud.style.left = -(Math.random()*200) + 'px';
+  cloud.style.setProperty('--dur2', (25 + Math.random()*30) + 's');
+  cloud.textContent = clouds[i%3];
+  bgEl.appendChild(cloud);
+}
 </script>
+</div>
 </body>
 </html>
