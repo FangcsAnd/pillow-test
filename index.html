@@ -730,7 +730,7 @@ function refreshHistoryUI() {
     var cl = computeComfortLabel(c);
     var score = cl.score;
     var label = cl.label;
-    var cls = score >= 4 ? 'good' : (score >= 3 ? 'ok' : 'bad');
+    var cls = score >= 3.4 ? 'good' : (score >= 2.6 ? 'ok' : 'bad');
     html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
     html += '<div style="font-size:9px;opacity:0.8;">' + (r.time||'') + '</div>';
     html += '<div style="font-size:10px;font-weight:600;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
