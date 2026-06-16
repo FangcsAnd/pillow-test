@@ -88,10 +88,10 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
     </table>
   </div>
   <div class="card">
-    <h2>枕头详情对比</h2>
+    <h2>推荐依据分析</h2>
     <table>
-      <thead><tr><th>枕头</th><th>材质</th><th>后脑勺高(mm)</th><th>颈椎高(mm)</th><th>硬度(HF)</th><th>尺寸</th><th>仰睡评分</th><th>侧睡评分</th></tr></thead>
-      <tbody id="detailBody"></tbody>
+      <thead><tr><th>枕头</th><th>加权评分</th><th>原始评分</th><th>高度匹配</th><th>仰睡分</th><th>侧睡分</th><th>测试人数</th><th>测试次数</th><th>颈高(mm)</th><th>硬度(HF)</th></tr></thead>
+      <tbody id="analysisBody"></tbody>
     </table>
   </div>
 </div>
@@ -251,11 +251,18 @@ function recommend() {
   var dhtml = '';
   for (var i = 0; i < Math.min(10, ranked.length); i++) {
     var r = ranked[i];
-    dhtml += '<tr><td>' + r.id + ' ' + r.brand + '</td><td>' + r.material + '</td>';
-    dhtml += '<td>' + r.headH + '</td><td>' + r.neckH + '</td><td>' + r.hardness + '</td><td>' + r.size + '</td>';
-    dhtml += '<td>' + r.supineAvg.toFixed(1) + '</td><td>' + r.sideAvg.toFixed(1) + '</td></tr>';
+    dhtml += '<tr><td><b>' + r.id + '</b> ' + r.brand + '</td>';
+    dhtml += '<td><b>' + r.weightedAvg.toFixed(1) + '</b></td>';
+    dhtml += '<td>' + r.rawAvg.toFixed(1) + '</td>';
+    dhtml += '<td>' + (r.heightMatch*100).toFixed(0) + '%</td>';
+    dhtml += '<td>' + r.supineAvg.toFixed(1) + '</td>';
+    dhtml += '<td>' + r.sideAvg.toFixed(1) + '</td>';
+    dhtml += '<td>' + r.userCount + '</td>';
+    dhtml += '<td>' + r.count + '</td>';
+    dhtml += '<td>' + r.neckH + '</td>';
+    dhtml += '<td>' + r.hardness + '</td></tr>';
   }
-  document.getElementById('detailBody').innerHTML = dhtml;
+  document.getElementById('analysisBody').innerHTML = dhtml;
 }
 
 // Auto-load on open
