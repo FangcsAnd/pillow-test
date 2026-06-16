@@ -113,7 +113,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
     <div class="row"><label>身高:</label><input style="flex:1" id="recHeight" readonly><span style="font-size:10px;color:var(--text2);">cm</span></div>
     <div class="row"><label>体重:</label><input style="flex:1" id="recWeight" readonly><span style="font-size:10px;color:var(--text2);">kg</span></div>
     <div class="row"><label>肩宽:</label><input style="flex:1" id="recShoulder" readonly><span style="font-size:10px;color:var(--text2);">cm</span></div>
-    <div class="row"><label>颈曲:</label><canvas id="neckCurveChart" width="90" height="180" style="border:1px solid var(--border);border-radius:4px;background:#fff;margin-left:4px;"></canvas></div>
+    <div class="row"><label>颈曲:</label><canvas id="neckCurveChart" width="90" height="200" style="border:1px solid var(--border);border-radius:4px;background:rgba(0,0,0,0.2);margin-left:4px;"></canvas></div>
     <div class="row"><label>病史:</label><input style="flex:1" id="recNeckHistory" readonly></div>
     <div class="row"><label>颈痛:</label><input style="flex:1" id="recNeckPain" readonly></div>
   </div>
@@ -573,13 +573,14 @@ function drawNeckCurve(data) {
   for (var i = 0; i < data.length; i += Math.max(1, Math.floor(data.length/5))) {
     var y = oy + i*stepY;
     ctxN.beginPath(); ctxN.moveTo(0, y); ctxN.lineTo(can.width, y); ctxN.stroke();
-    ctxN.fillText('C'+(i+1), 2, y+3);
+    ctxN.fillText('C'+(i+1), 3, y-2);
   }
   for (var t = 0; t <= 4; t++) {
     var v = Math.round(maxVal*t/4);
     var x = ox + (w*(4-t)/4);
     ctxN.beginPath(); ctxN.moveTo(x, oy); ctxN.lineTo(x, oy+h); ctxN.stroke();
-    ctxN.fillText(v, x-6, oy+h+8);
+    var tw = ctxN.measureText(''+v).width;
+    ctxN.fillText(v, x - tw/2, oy+h+10);
   }
   ctxN.strokeStyle = '#64d2ff'; ctxN.lineWidth = 1.5; ctxN.beginPath();
   for (var i = 0; i < data.length; i++) {
