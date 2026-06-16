@@ -69,7 +69,10 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
 /* Param grid */
 .param-item .pn { color: rgba(255,255,255,0.5); }
 .param-item .pv { color: var(--accent); }
-.param-item .help { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.5); font-size: 9px; cursor: pointer; border: none; margin-right: 2px; }
+.param-item .help { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.4); font-size: 9px; cursor: pointer; border: none; margin-right: 3px; transition: all 0.2s; }
+.param-item .help:hover { background: var(--accent); color: #000; }
+.param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
+#helpPopup { display: none; position: fixed; z-index: 200; background: rgba(44,44,58,0.95); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 14px; font-size: 12px; max-width: 220px; color: #fff; backdrop-filter: blur(20px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); pointer-events: none; }
 </style>
 </head>
 <body>
