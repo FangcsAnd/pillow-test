@@ -79,7 +79,22 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
   <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span>
 </div>
 
-<div id="result">
+  <div class="card">
+    <h2>推荐算法说明</h2>
+    <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.8;">
+      <b>步骤1：被试相似度匹配</b><br>
+      计算当前用户与历史记录中每位被试的相似度：<br>
+      &nbsp;&nbsp;Sim = 1/(1+|Δ身高|/15) × 1/(1+|Δ体重|/10) × 1/(1+|Δ肩宽|/5) × 1/(1+|Δ颈曲峰值|/3)<br>
+      <b>步骤2：枕头评分计算</b><br>
+      对每条匹配记录，计算加权舒适度：Score = (整体×0.45 + 仰睡×0.25 + 侧睡×0.25 + 其他×0.05) × Sim<br>
+      <b>步骤3：枕头高度匹配</b><br>
+      根据颈椎曲度推算枕后高度需求：需高 ≈ 颈曲峰值×30 mm<br>
+      高度匹配度 = 1 - |需高 - 枕头后脑勺高| / 100<br>
+      <b>步骤4：综合排序</b><br>
+      最终分 = 加权平均×0.7 + 原始平均×0.2 + 高度匹配×2<br>
+      按最终分降序排列，取 Top 10
+    </div>
+  </div>
   <div class="card">
     <h2>推荐结果 <span id="resultSummary" style="font-size:12px;color:#636e72;"></span></h2>
     <table>
@@ -90,9 +105,13 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
   <div class="card">
     <h2>推荐依据分析</h2>
     <table>
-      <thead><tr><th>枕头</th><th>加权评分</th><th>原始评分</th><th>高度匹配</th><th>仰睡分</th><th>侧睡分</th><th>测试人数</th><th>测试次数</th><th>颈高(mm)</th><th>硬度(HF)</th></tr></thead>
+      <thead><tr><th>枕头</th><th>综合分</th><th>历史评分</th><th>相似用户</th><th>高度匹配</th><th>仰睡</th><th>侧睡</th><th>颈高mm</th><th>硬度</th><th>材质</th></tr></thead>
       <tbody id="analysisBody"></tbody>
     </table>
+  </div>
+  <div class="card">
+    <h2>被试-枕头匹配明细</h2>
+    <div id="matchDetail" style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.8;"></div>
   </div>
 </div>
 
@@ -249,20 +268,30 @@ function recommend() {
 
   // Detail table
   var dhtml = '';
+  var matchInfo = '';
   for (var i = 0; i < Math.min(10, ranked.length); i++) {
     var r = ranked[i];
     dhtml += '<tr><td><b>' + r.id + '</b> ' + r.brand + '</td>';
-    dhtml += '<td><b>' + r.weightedAvg.toFixed(1) + '</b></td>';
-    dhtml += '<td>' + r.rawAvg.toFixed(1) + '</td>';
+    dhtml += '<td><b>' + r.score.toFixed(1) + '</b></td>';
+    dhtml += '<td>' + r.rawAvg.toFixed(1) + ' (' + r.weightedAvg.toFixed(1) + ')</td>';
+    dhtml += '<td>' + r.userCount + '人/' + r.count + '次</td>';
     dhtml += '<td>' + (r.heightMatch*100).toFixed(0) + '%</td>';
     dhtml += '<td>' + r.supineAvg.toFixed(1) + '</td>';
     dhtml += '<td>' + r.sideAvg.toFixed(1) + '</td>';
-    dhtml += '<td>' + r.userCount + '</td>';
-    dhtml += '<td>' + r.count + '</td>';
     dhtml += '<td>' + r.neckH + '</td>';
-    dhtml += '<td>' + r.hardness + '</td></tr>';
+    dhtml += '<td>' + r.hardness + '</td>';
+    dhtml += '<td>' + r.material + '</td></tr>';
+    
+    if (i === 0) {
+      matchInfo = '<b>最佳匹配 ' + r.id + ' ' + r.brand + '</b><br>';
+      matchInfo += '• 您身高' + height + 'cm，该枕后脑勺高' + r.headH + 'mm<br>';
+      matchInfo += '• 颈椎曲度峰值' + neckPeak.toFixed(1) + 'mm，推算需高≈' + needHeadH + 'mm<br>';
+      matchInfo += '• 枕头材质：' + r.material + '，硬度：' + r.hardness + 'HF<br>';
+      matchInfo += '• 历史' + r.userCount + '位相似用户测试' + r.count + '次，综合评分' + r.rawAvg.toFixed(1);
+    }
   }
   document.getElementById('analysisBody').innerHTML = dhtml;
+  document.getElementById('matchDetail').innerHTML = matchInfo;
 }
 
 // Auto-load on open
