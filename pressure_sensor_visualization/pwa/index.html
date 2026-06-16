@@ -63,7 +63,9 @@ input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 5
 input[type="range"] { -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); padding: 0; border: none; }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.3); cursor: pointer; }
 /* Row labels */
-.row label { color: rgba(255,255,255,0.55); font-size: 12px; min-width: 70px; text-align: right; }
+.row label { color: rgba(255,255,255,0.55); font-size: 12px; min-width: 72px; text-align: right; flex-shrink: 0; }
+.row input, .row select, .row textarea { flex: 1; }
+.row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 /* History cards area */
 #historyCards { border-radius: var(--radius); background: rgba(255,255,255,0.08); }
 /* Param grid */
