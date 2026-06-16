@@ -75,6 +75,13 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
 .param-item .help:hover { background: var(--accent); color: #000; }
 .param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
 #helpPopup { display: none; position: fixed; z-index: 200; background: rgba(44,44,58,0.95); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 14px; font-size: 12px; max-width: 220px; color: #fff; backdrop-filter: blur(20px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); pointer-events: none; }
+.modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal-box { background:rgba(44,44,58,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:20px; max-width:700px; max-height:80vh; overflow-y:auto; width:90%; backdrop-filter:blur(20px); }
+.modal-box table { width:100%; border-collapse:collapse; }
+.modal-box th { padding:6px 8px; text-align:left; font-size:11px; color:rgba(255,255,255,0.5); border-bottom:1px solid rgba(255,255,255,0.1); }
+.modal-box td { padding:5px 8px; font-size:11px; color:rgba(255,255,255,0.8); border-bottom:1px solid rgba(255,255,255,0.05); }
+.modal-box tr:hover td { background:rgba(255,255,255,0.05); }
 </style>
 </head>
 <body>
@@ -105,7 +112,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
   </div>
 
   <div class="card">
-    <div class="card-title">被试信息</div>
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">被试信息 <button class="btn-sm" onclick="showAllUsers()" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:10px;">查看全部</button></div>
     <div class="row"><label>被试ID:</label><select id="recUserId" style="flex:1" onchange="onUserSelect()"><option value="">自定义</option></select></div>
     <div class="row"><label>姓名:</label><input style="flex:1" id="recName" readonly></div>
     <div class="row"><label>性别:</label><input style="flex:1" id="recGender" readonly></div>
@@ -119,7 +126,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
   </div>
 
   <div class="card">
-    <div class="card-title">枕头信息</div>
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">枕头信息 <button class="btn-sm" onclick="showAllPillows()" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:10px;">查看全部</button></div>
     <div class="row"><label>枕头ID:</label><select id="recPillowId" style="flex:1" onchange="onPillowSelect()"><option value="">自定义</option></select></div>
     <div class="row"><label>品牌:</label><input style="flex:1" id="recBrand" readonly></div>
     <div class="row"><label>材质:</label><input style="flex:1" id="recMaterial" readonly></div>
@@ -169,6 +176,15 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
 
 <div id="helpPopup"></div>
 
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-box" id="modalBox" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span id="modalTitle" style="font-weight:600;font-size:14px;color:#fff;"></span>
+      <button class="btn-sm" onclick="closeModal()" style="background:rgba(255,255,255,0.1);color:#fff;">关闭</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
 <script>
 var SIZE = 16;
 var currentGrid = [];
@@ -948,6 +964,35 @@ function resetToTest() {
 
   var cards = document.querySelectorAll('#historyCards .history-row');
   for (var i = 0; i < cards.length; i++) cards[i].classList.remove('active');
+}
+
+function showAllUsers() {
+  var html = '<table><tr><th>ID</th><th>姓名</th><th>性别</th><th>年龄</th><th>身高</th><th>体重</th><th>肩宽</th><th>病史</th><th>颈痛</th></tr>';
+  for (var i = 0; i < userData.length; i++) {
+    var u = userData[i];
+    html += '<tr><td>' + u.id + '</td><td>' + u.name + '</td><td>' + u.gender + '</td><td>' + u.age + '</td><td>' + u.height + '</td><td>' + u.weight + '</td><td>' + u.shoulder_width + '</td><td>' + (u.neck_history||'') + '</td><td>' + (u.neck_pain||'') + '</td></tr>';
+  }
+  html += '</table>';
+  document.getElementById('modalTitle').textContent = '全部被试信息 (' + userData.length + '人)';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function showAllPillows() {
+  var html = '<table><tr><th>ID</th><th>品牌</th><th>材质</th><th>尺寸</th><th>后脑勺高</th><th>颈高</th><th>侧高</th><th>中心硬度</th><th>颈硬度</th></tr>';
+  for (var i = 0; i < pillowData.length; i++) {
+    var p = pillowData[i];
+    html += '<tr><td>' + p.id + '</td><td>' + p.brand + '</td><td>' + p.material + '</td><td>' + p.size + '</td><td>' + p.head_height + '</td><td>' + p.neck_height + '</td><td>' + p.side_height + '</td><td>' + (p.center_hardness||'') + '</td><td>' + (p.neck_hardness||'') + '</td></tr>';
+  }
+  html += '</table>';
+  document.getElementById('modalTitle').textContent = '全部枕头信息 (' + pillowData.length + '款)';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('show');
 }
 
 function clearLocal() {
