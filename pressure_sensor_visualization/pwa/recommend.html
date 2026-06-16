@@ -79,22 +79,6 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
   <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span>
 </div>
 
-  <div class="card">
-    <h2>推荐算法说明</h2>
-    <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.8;">
-      <b>步骤1：被试相似度匹配</b><br>
-      计算当前用户与历史记录中每位被试的相似度：<br>
-      &nbsp;&nbsp;Sim = 1/(1+|Δ身高|/15) × 1/(1+|Δ体重|/10) × 1/(1+|Δ肩宽|/5) × 1/(1+|Δ颈曲峰值|/3)<br>
-      <b>步骤2：枕头评分计算</b><br>
-      对每条匹配记录，计算加权舒适度：Score = (整体×0.45 + 仰睡×0.25 + 侧睡×0.25 + 其他×0.05) × Sim<br>
-      <b>步骤3：枕头高度匹配</b><br>
-      根据颈椎曲度推算枕后高度需求：需高 ≈ 颈曲峰值×30 mm<br>
-      高度匹配度 = 1 - |需高 - 枕头后脑勺高| / 100<br>
-      <b>步骤4：综合排序</b><br>
-      最终分 = 加权平均×0.7 + 原始平均×0.2 + 高度匹配×2<br>
-      按最终分降序排列，取 Top 10
-    </div>
-  </div>
 <div id="result">
   <div class="card">
     <h2>推荐结果 <span id="resultSummary" style="font-size:12px;color:rgba(255,255,255,0.4);"></span></h2>
