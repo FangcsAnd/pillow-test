@@ -581,10 +581,8 @@ function drawNeckCurve(data) {
   ctxN.clearRect(0, 0, can.width, can.height);
   if (!data || data.length < 2) return;
   var w = can.width - 20, h = can.height - 20, ox = 18, oy = 4;
-  var maxVal = 0;
-  for (var i = 0; i < data.length; i++) if (data[i] > maxVal) maxVal = data[i];
-  if (maxVal === 0) return;
-  ctxN.font = '8px "PingFang SC"'; ctxN.fillStyle = '#636e72'; ctxN.strokeStyle = '#dfe6e9'; ctxN.lineWidth = 0.5;
+  var maxVal = 5;
+  ctxN.font = '8px "PingFang SC"'; ctxN.fillStyle = 'rgba(255,255,255,0.5)'; ctxN.strokeStyle = 'rgba(255,255,255,0.1)'; ctxN.lineWidth = 0.5;
   var stepY = h / (data.length - 1);
   for (var i = 0; i < data.length; i += Math.max(1, Math.floor(data.length/5))) {
     var y = oy + i*stepY;
