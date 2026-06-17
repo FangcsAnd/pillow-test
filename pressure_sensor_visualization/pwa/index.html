@@ -583,13 +583,11 @@ function buildParamGrid() {
 function loadPillows() {
   fetch('data/pillows.json').then(function(r){ return r.json(); }).then(function(data){
     var saved = localStorage.getItem('pillow_pillows');
-    if (saved) { pillowData = JSON.parse(saved); }
-    else { pillowData = data; }
-    // Filter: only memory foam
-    pillowData = pillowData.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
-    refreshPillowDropdown();
-  }).catch(function(e){ console.error('Failed to load pillows:', e); });
-}
+    if (saved) {
+      pillowData = JSON.parse(saved);
+    } else {
+      pillowData = data;
+    }
     refreshPillowDropdown();
   }).catch(function(e){ console.error('Failed to load pillows:', e); });
 }

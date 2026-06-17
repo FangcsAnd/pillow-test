@@ -130,9 +130,7 @@ function loadData() {
   });
 
   fetch('data/pillows.json').then(function(r){ return r.json(); }).then(function(pillows){
-    for (var i = 0; i < pillows.length; i++) {
-      if ((pillows[i].material||'').indexOf('记忆棉')!==-1) pillowInfo[pillows[i].id] = pillows[i];
-    }
+    for (var i = 0; i < pillows.length; i++) pillowInfo[pillows[i].id] = pillows[i];
   }).catch(function(){});
 }
 
