@@ -124,7 +124,7 @@
     "head_height": "100",
     "neck_height": "100",
     "side_height": "100",
-    "center_hardness": "100",
+    "center_hardness": "6",
     "neck_hardness": "6",
     "edge_hardness_l": "6",
     "edge_hardness_r": "6"
