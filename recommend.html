@@ -95,6 +95,13 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
     <div id="recommendedParams" style="font-size:13px;color:rgba(255,255,255,0.8);line-height:2;"></div>
   </div>
   <div class="card">
+    <h2>各枕头参数对比</h2>
+    <table>
+      <thead><tr><th>枕头</th><th>后脑勺高</th><th>颈椎高</th><th>侧睡高</th><th>硬度</th><th>匹配评价</th></tr></thead>
+      <tbody id="paramCompareBody"></tbody>
+    </table>
+  </div>
+  <div class="card">
     <h2>推荐结果 <span id="resultSummary" style="font-size:12px;color:rgba(255,255,255,0.4);"></span></h2>
     <table>
       <thead><tr><th>排名</th><th>枕头ID</th><th>品牌型号</th><th>综合评分</th><th>评价</th><th>测试次数</th><th>依据</th><th>匹配度</th></tr></thead>
@@ -239,7 +246,7 @@ function recommend() {
     ranked.push({
       id: pid, brand: info.brand || r.brand || '',
       material: info.material || '', size: info.size || '',
-      headH: info.head_height || '', neckH: info.neck_height || '',
+      headH: info.head_height || '', neckH: info.neck_height || '', sideH: info.side_height || '',
       hardness: info.center_hardness || '',
       score: finalScore,
       rawAvg: rawAvg,
@@ -305,6 +312,24 @@ function recommend() {
     }
   }
   document.getElementById('analysisBody').innerHTML = dhtml;
+  // Parameter comparison table
+  var ch = '';
+  for (var i = 0; i < Math.min(10, ranked.length); i++) {
+    var r = ranked[i];
+    var headOk = Math.abs(recHeadH - parseFloat(r.headH||0)) <= 15;
+    var neckOk = Math.abs(recNeckH - parseFloat(r.neckH||0)) <= 12;
+    var sideOk = Math.abs(recSideH - parseFloat(r.sideH||0)) <= 15;
+    var hardOk = parseFloat(r.hardness||0) >= recHardnessLow && parseFloat(r.hardness||0) <= recHardnessHigh;
+    var matchCount = (headOk?1:0)+(neckOk?1:0)+(sideOk?1:0)+(hardOk?1:0);
+    var matchLabel = matchCount >= 4 ? '完美匹配' : (matchCount >= 2 ? '部分匹配' : '匹配较差');
+    ch += '<tr><td><b>' + r.id + '</b> ' + r.brand + '</td>';
+    ch += '<td style="color:' + (headOk?'#30d158':'#ff453a') + '">' + (r.headH||'?') + ' mm</td>';
+    ch += '<td style="color:' + (neckOk?'#30d158':'#ff453a') + '">' + (r.neckH||'?') + ' mm</td>';
+    ch += '<td style="color:' + (sideOk?'#30d158':'#ff453a') + '">' + (r.sideH||'?') + ' mm</td>';
+    ch += '<td style="color:' + (hardOk?'#30d158':'#ff453a') + '">' + (r.hardness||'?') + ' HF</td>';
+    ch += '<td>' + matchLabel + ' (' + matchCount + '/4)</td></tr>';
+  }
+  document.getElementById('paramCompareBody').innerHTML = ch;
   document.getElementById('matchDetail').innerHTML = matchInfo;
 }
 
