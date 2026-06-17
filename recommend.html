@@ -303,7 +303,7 @@ function recommend() {
     dhtml += '<td>' + r.neckH + '</td>';
     dhtml += '<td>' + r.hardness + '</td>';
     dhtml += '<td>' + r.material + '</td>';
-    dhtml += '<td><button class="btn-sm" onclick="showPillowUsers(\'' + r.id + '\',' + i + ')" style="background:rgba(255,255,255,0.1);font-size:9px;">查看</button></td></tr>';
+    dhtml += '<td><button class="btn-sm" onclick="showPillowUsers(\'' + r.id + '\')" style="background:rgba(255,255,255,0.1);font-size:9px;">查看</button></td></tr>';
     
     if (i === 0) {
       matchInfo = '<b>最佳匹配 ' + r.id + ' ' + r.brand + '</b><br>';
@@ -315,8 +315,13 @@ function recommend() {
   }
   document.getElementById('analysisBody').innerHTML = dhtml;
 
-function showPillowUsers(pid, rankIdx) {
-  var r = window._ranked ? window._ranked[rankIdx] : null;
+function showPillowUsers(pid) {
+  var ranked = window._ranked || [];
+  var r = null;
+  for (var i = 0; i < ranked.length; i++) {
+    if (ranked[i].id === pid) { r = ranked[i]; break; }
+  }
+  if (!r) { alert('数据未加载，请先点开始推荐'); return; }
   var users = r.users || {};
   var html = '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">';
   html += '<b>' + pid + '</b> 的测试用户：<br><br>';
