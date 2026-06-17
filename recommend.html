@@ -79,16 +79,6 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
   <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span>
 </div>
 
-  <div class="card">
-    <h2>推荐步骤</h2>
-    <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.8;">
-      <b>① 被试相似度匹配</b> — 根据身高、体重、肩宽、颈椎曲度，找到历史中与你体型最接近的被试<br>
-      <b>② 枕头评分加权</b> — 对每条匹配数据加权计算舒适度（整体×45% + 仰睡×25% + 侧睡×25% + 其他×5%）<br>
-      <b>③ 枕头高度匹配</b> — 根据颈曲推算后脑勺需高，对比枕头实际高度<br>
-      <b>④ 综合分排序</b> — 结合历史评分与枕头物理参数，综合排名 Top 10
-    </div>
-  </div>
-
 <div id="result">
   <div class="card">
     <h2>AI 推荐步骤</h2>
@@ -434,32 +424,35 @@ async function deepseekRecommend() {
   var sleepPos = document.getElementById('sleepPos').value;
   var neckCurveText = document.getElementById('neckCurveText').value;
 
-  // Build pillow summary
-  var pillowSummary = [];
-  for (var k in pillowInfo) {
-    var p = pillowInfo[k];
-    var scores = {good:0, total:0};
-    for (var i=0; i<allRecords.length; i++) {
-      if (allRecords[i].pillow_id === k) {
-        scores.total++;
-        var sc = (convertOldScore((allRecords[i].comfort||{}).comfort_overall)*0.45+
-                  convertOldScore((allRecords[i].comfort||{}).comfort_supine)*0.25+
-                  convertOldScore((allRecords[i].comfort||{}).comfort_side)*0.25);
-        if (sc >= 3.4) scores.good++;
-      }
-    }
-    pillowSummary.push(k + '|' + p.brand + '|' + p.material + '|' + p.head_height + 'mm|' + p.neck_height + 'mm|' + p.side_height + 'mm|硬度' + p.center_hardness + '|' + scores.good + '/' + scores.total + '好评');
   }
 
-  var prompt = '你是枕头推荐专家。根据以下数据推荐最佳枕头：\n';
-  prompt += '用户：身高' + height + 'cm 体重' + weight + 'kg 肩宽' + shoulder + 'cm 睡姿' + sleepPos + ' 颈曲' + (neckCurveText||'无') + '\n';
-  prompt += '候选枕头：\n' + pillowSummary.join('\n') + '\n';
-  prompt += '请按以下格式输出：\n';
-  prompt += '推荐后脑勺高度：XX ~ XX mm\n';
-  prompt += '推荐颈椎高度：XX ~ XX mm\n';
-  prompt += '推荐侧睡区高度：XX ~ XX mm\n';
-  prompt += '推荐软硬度：XX ~ XX HF\n';
-  prompt += '推荐枕头排名：Top3 枕头ID及理由（结合高度匹配、硬度匹配、历史好评率）';
+  var prompt = '你是专业枕头推荐专家，根据被试信息、枕头数据库、历史测试记录进行分析推荐。\n\n';
+  prompt += '=== 当前被试信息 ===\n';
+  prompt += '身高:'+height+'cm 体重:'+weight+'kg 肩宽:'+shoulder+'cm 习惯睡姿:'+sleepPos+'\n';
+  prompt += '颈椎曲度(mm):'+(neckCurveText||'无')+'\n\n';
+  
+  prompt += '=== 枕头数据库 ===\n';
+  for (var k in pillowInfo) {
+    var p = pillowInfo[k];
+    prompt += p.id+' | '+p.brand+' | '+p.material+' | 尺寸'+p.size+' | 后脑勺高'+p.head_height+'mm | 颈高'+p.neck_height+'mm | 侧高'+p.side_height+'mm | 硬度'+p.center_hardness+'HF\n';
+  }
+  
+  prompt += '\n=== 历史测试记录（仅列高分记录） ===\n';
+  var shownP = {};
+  for (var i = 0; i < allRecords.length; i++) {
+    var r = allRecords[i];
+    var c = r.comfort || {};
+    var score = convertOldScore(c.comfort_overall)*0.45+convertOldScore(c.comfort_supine)*0.25+convertOldScore(c.comfort_side)*0.25;
+    if (score < 3.4) continue;
+    var key = r.pillow_id+'_'+r.user_id+'_'+r.sleep_pos;
+    if (shownP[key]) continue; shownP[key]=true;
+    prompt += r.user_id+' '+r.name+' | '+r.pillow_id+' '+r.pillow_brand+' | '+r.sleep_pos;
+    prompt += ' | 身高'+r.height+' 体重'+r.weight+' 肩宽'+r.shoulder_width;
+    prompt += ' | 整体'+convertOldScore(c.comfort_overall)+' 仰睡'+convertOldScore(c.comfort_supine)+' 侧睡'+convertOldScore(c.comfort_side);
+    prompt += ' | 颈撑'+convertOldScore(c.comfort_neck)+' 头裹'+convertOldScore(c.comfort_head)+'\n';
+  }
+  
+  prompt += '\n请给出：推荐后脑勺高度范围、颈椎高度范围、侧睡区高度范围、软硬度范围，以及Top3枕头排名和匹配理由。';
 
   document.getElementById('recommendedParams').innerHTML = '<span style="color:var(--accent);">AI 分析中...</span>';
   document.getElementById('result').style.display = 'block';
