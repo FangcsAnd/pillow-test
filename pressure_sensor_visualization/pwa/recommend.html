@@ -74,7 +74,8 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
   </div>
   <div class="row"><label>颈椎曲度:</label><textarea id="neckCurveText" style="flex:1;height:60px;font-size:11px;font-family:monospace;" placeholder="粘贴颈椎曲度数组，如 [0,0,0.2,0.9,1.7,...]"></textarea></div>
   <div class="row"><label>睡姿:</label><select id="sleepPos"><option>仰睡</option><option>侧睡</option></select></div>
-  <button class="btn-primary" onclick="recommend()">开始推荐</button>
+  <button class="btn-primary" onclick="recommend()">推荐</button>
+  <button class="btn-primary" onclick="deepseekRecommend()" style="background:#536dfe;">AI 分析</button>
   <button class="btn-success" onclick="loadData()" style="margin-left:8px;">加载数据</button>
   <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span>
 </div>
@@ -410,6 +411,70 @@ function recommend() {
 
 // Auto-load on open
 loadData();
+
+async function deepseekRecommend() {
+  if (!allRecords.length) { alert('请先加载数据'); return; }
+  var apiKey = localStorage.getItem('deepseek_key');
+  if (!apiKey) {
+    apiKey = prompt('请输入 DeepSeek API Key（在 platform.deepseek.com 获取）：');
+    if (!apiKey) return;
+    localStorage.setItem('deepseek_key', apiKey);
+  }
+  
+  var height = parseFloat(document.getElementById('height').value) || 170;
+  var weight = parseFloat(document.getElementById('weight').value) || 65;
+  var shoulder = parseFloat(document.getElementById('shoulder').value) || 16;
+  var sleepPos = document.getElementById('sleepPos').value;
+  var neckCurveText = document.getElementById('neckCurveText').value;
+
+  // Build pillow summary
+  var pillowSummary = [];
+  for (var k in pillowInfo) {
+    var p = pillowInfo[k];
+    var scores = {good:0, total:0};
+    for (var i=0; i<allRecords.length; i++) {
+      if (allRecords[i].pillow_id === k) {
+        scores.total++;
+        var sc = (convertOldScore((allRecords[i].comfort||{}).comfort_overall)*0.45+
+                  convertOldScore((allRecords[i].comfort||{}).comfort_supine)*0.25+
+                  convertOldScore((allRecords[i].comfort||{}).comfort_side)*0.25);
+        if (sc >= 3.4) scores.good++;
+      }
+    }
+    pillowSummary.push(k + '|' + p.brand + '|' + p.material + '|' + p.head_height + 'mm|' + p.neck_height + 'mm|' + p.side_height + 'mm|硬度' + p.center_hardness + '|' + scores.good + '/' + scores.total + '好评');
+  }
+
+  var prompt = '你是枕头推荐专家。根据以下数据推荐最佳枕头：\n';
+  prompt += '用户：身高' + height + 'cm 体重' + weight + 'kg 肩宽' + shoulder + 'cm 睡姿' + sleepPos + ' 颈曲' + (neckCurveText||'无') + '\n';
+  prompt += '候选枕头：\n' + pillowSummary.join('\n') + '\n';
+  prompt += '请推荐前3名，说明理由，包括高度匹配、硬度匹配、历史好评率。返回中文。';
+
+  document.getElementById('recommendedParams').innerHTML = '<span style="color:var(--accent);">AI 分析中...</span>';
+  document.getElementById('result').style.display = 'block';
+  
+  try {
+    var resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{role:'user',content:prompt}],
+        temperature: 0.7, max_tokens: 1000
+      })
+    });
+    var data = await resp.json();
+    if (data.error) { throw new Error(data.error.message); }
+    var reply = data.choices[0].message.content;
+    document.getElementById('recommendedParams').innerHTML = '<b>AI 推荐分析：</b><br><pre style="white-space:pre-wrap;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.8);">' + reply.replace(/\n/g,'<br>') + '</pre>';
+  } catch(e) {
+    if (e.message.indexOf('401')!==-1 || e.message.indexOf('auth')!==-1) {
+      localStorage.removeItem('deepseek_key');
+      alert('API Key 无效，请重新输入');
+    } else {
+      document.getElementById('recommendedParams').innerHTML = '<span style="color:#ff453a;">AI 请求失败：' + e.message + '</span>';
+    }
+  }
+}
 
 // Generate stars
 var bgEl = document.getElementById('bgElements');
