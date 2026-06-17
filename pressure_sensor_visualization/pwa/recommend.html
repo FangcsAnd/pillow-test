@@ -260,6 +260,7 @@ function recommend() {
   }
   
   ranked.sort(function(a,b){ return b.score - a.score; });
+  window._ranked = ranked;
 
   // Display results
   document.getElementById('result').style.display = 'block';
@@ -315,7 +316,7 @@ function recommend() {
   document.getElementById('analysisBody').innerHTML = dhtml;
 
 function showPillowUsers(pid, rankIdx) {
-  var r = ranked[rankIdx];
+  var r = window._ranked ? window._ranked[rankIdx] : null;
   var users = r.users || {};
   var html = '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">';
   html += '<b>' + pid + '</b> 的测试用户：<br><br>';
