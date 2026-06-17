@@ -74,8 +74,7 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
   </div>
   <div class="row"><label>颈椎曲度:</label><textarea id="neckCurveText" style="flex:1;height:60px;font-size:11px;font-family:monospace;" placeholder="粘贴颈椎曲度数组，如 [0,0,0.2,0.9,1.7,...]"></textarea></div>
   <div class="row"><label>睡姿:</label><select id="sleepPos"><option>仰睡</option><option>侧睡</option></select></div>
-  <button class="btn-primary" onclick="recommend()">推荐</button>
-  <button class="btn-primary" onclick="deepseekRecommend()" style="background:#536dfe;">AI 分析</button>
+  <button class="btn-primary" onclick="deepseekRecommend()" style="background:#536dfe;">AI 分析推荐</button>
   <button class="btn-success" onclick="loadData()" style="margin-left:8px;">加载数据</button>
   <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span>
 </div>
@@ -478,7 +477,39 @@ async function deepseekRecommend() {
     var data = await resp.json();
     if (data.error) { throw new Error(data.error.message); }
     var reply = data.choices[0].message.content;
-    document.getElementById('recommendedParams').innerHTML = '<b>AI 推荐分析：</b><br><pre style="white-space:pre-wrap;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.8);">' + reply.replace(/\n/g,'<br>') + '</pre>';
+    // Show AI analysis in recommended params
+    document.getElementById('recommendedParams').innerHTML = '<b>AI 分析结果：</b><br><pre style="white-space:pre-wrap;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.8);">' + reply.replace(/\n/g,'<br>') + '</pre>';
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('resultSummary').textContent = '基于 ' + allRecords.length + ' 条数据 | AI 分析';
+    // Clear comparison tables
+    document.getElementById('resultBody').innerHTML = '';
+    document.getElementById('analysisBody').innerHTML = '';
+    document.getElementById('paramCompareBody').innerHTML = '';
+    // Extract pillow IDs from reply and show in tables
+    var pillowIds = reply.match(/p\d+/g) || [];
+    var shown = {};
+    var rhtml = '', ahtml = '', phtml = '';
+    for (var idx = 0; idx < Math.min(5, pillowIds.length); idx++) {
+      var pid = pillowIds[idx];
+      if (shown[pid]) continue; shown[pid] = true;
+      var info = pillowInfo[pid] || {};
+      var score = info.center_hardness ? 4 : 3;
+      var cls = score >= 3.4 ? 'good' : 'ok';
+      rhtml += '<tr><td>' + (idx+1) + '</td><td>' + pid + '</td><td>' + (info.brand||'?') + '</td>';
+      rhtml += '<td><b>' + score.toFixed(1) + '</b></td><td><span class="badge badge-green">AI推荐</span></td>';
+      rhtml += '<td>-</td><td><span style="font-size:10px;">AI分析</span></td><td><div class="score-bar"><div style="width:' + (score*20) + 'px;background:#30d158;"></div></div></td></tr>';
+      ahtml += '<tr><td><b>' + pid + '</b> ' + (info.brand||'') + '</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>' + (info.neck_height||'') + '</td><td>' + (info.center_hardness||'') + '</td><td>' + (info.material||'') + '</td></tr>';
+      phtml += '<tr><td><b>' + pid + '</b> ' + (info.brand||'') + '</td>';
+      phtml += '<td style="color:rgba(255,255,255,0.5)">' + (info.head_height||'?') + ' mm</td>';
+      phtml += '<td style="color:rgba(255,255,255,0.5)">' + (info.neck_height||'?') + ' mm</td>';
+      phtml += '<td style="color:rgba(255,255,255,0.5)">' + (info.side_height||'?') + ' mm</td>';
+      phtml += '<td style="color:rgba(255,255,255,0.5)">' + (info.center_hardness||'?') + ' HF</td>';
+      phtml += '<td>AI推荐</td></tr>';
+    }
+    document.getElementById('resultBody').innerHTML = rhtml || '<tr><td colspan="8" style="color:rgba(255,255,255,0.4);">查看上方AI分析详情</td></tr>';
+    document.getElementById('analysisBody').innerHTML = ahtml || '<tr><td colspan="10" style="color:rgba(255,255,255,0.4);">查看上方AI分析详情</td></tr>';
+    document.getElementById('paramCompareBody').innerHTML = phtml || '<tr><td colspan="6" style="color:rgba(255,255,255,0.4);">查看上方AI分析详情</td></tr>';
+    document.getElementById('matchDetail').innerHTML = '<span style="color:rgba(255,255,255,0.5);">以上为 DeepSeek AI 基于历史数据综合分析结果</span>';
   } catch(e) {
     if (e.message.indexOf('401')!==-1 || e.message.indexOf('auth')!==-1) {
       localStorage.removeItem('deepseek_key');
