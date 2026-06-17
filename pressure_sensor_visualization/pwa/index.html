@@ -869,14 +869,47 @@ function closeModal(e) {
 }
 
 function showCrossMatrix() {
-  fetch('data/records.json').then(function(r){return r.json();}).then(function(records){
-    // Build user and pillow lists
-    var users=[],pillows=[],seenU={},seenP={};
+  // Load all records, users, and pillows for full cross-reference
+  Promise.all([
+    fetch('data/records.json').then(function(r){return r.json();}),
+    fetch('data/users.json').then(function(r){return r.json();}),
+    fetch('data/pillows.json').then(function(r){return r.json();})
+  ]).then(function(results){
+    var records=results[0], allUsers=results[1], allPillows=results[2];
+    // Filter pillows to memory foam only
+    allPillows=allPillows.filter(function(p){return (p.material||'').indexOf('记忆棉')!==-1;});
+    
+    // Build tested map from records
+    var tested={};
     for(var i=0;i<records.length;i++){
       var r=records[i];
-      if(!seenU[r.user_id]){seenU[r.user_id]=1;users.push(r);}
-      if(!seenP[r.pillow_id]){seenP[r.pillow_id]=1;pillows.push(r);}
+      tested[(r.user_id||'')+'_'+(r.pillow_id||'')]=1;
     }
+    
+    var totalMissing=0;
+    var html='<div style="overflow-x:auto;font-size:11px;">';
+    html+='<table><tr><th>用户</th><th>枕头</th><th>状态</th></tr>';
+    for(var ui=0;ui<allUsers.length;ui++){
+      var u=allUsers[ui];
+      for(var pi=0;pi<allPillows.length;pi++){
+        var p=allPillows[pi];
+        var isTested=tested[u.id+'_'+p.id];
+        if(!isTested) totalMissing++;
+        html+='<tr style="'+(isTested?'':'background:rgba(255,69,58,0.06);')+'">';
+        html+='<td>'+u.id+' '+u.name+'</td>';
+        html+='<td>'+p.id+' '+p.brand+'</td>';
+        html+='<td style="color:'+(isTested?'#30d158':'#ff453a')+'">'+(isTested?'✓ 已测试':'✗ 未测试')+'</td></tr>';
+      }
+    }
+    html+='</table></div>';
+    var total=allUsers.length*allPillows.length;
+    html+='<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:8px;">共 '+allUsers.length+' 人 × '+allPillows.length+' 款 = '+total+' 组合 | 已测'+(total-totalMissing)+' | 未测'+totalMissing+'</div>';
+    
+    document.getElementById('modalTitle').textContent='交叉测试矩阵 ('+allUsers.length+'人×'+allPillows.length+'款)';
+    document.getElementById('modalContent').innerHTML=html;
+    document.getElementById('modalOverlay').classList.add('show');
+  });
+}
     pillows.sort(function(a,b){return (a.pillow_id||'').localeCompare(b.pillow_id||'')});
     users.sort(function(a,b){return (a.user_id||'').localeCompare(b.user_id||'')});
     
