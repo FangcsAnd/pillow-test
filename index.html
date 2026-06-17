@@ -586,9 +586,8 @@ function loadPillows() {
     if (saved) {
       pillowData = JSON.parse(saved);
     } else {
-      pillowData = data;
+      pillowData = data.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
     }
-    pillowData = pillowData.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
     refreshPillowDropdown();
   }).catch(function(e){ console.error('Failed to load pillows:', e); });
 }
