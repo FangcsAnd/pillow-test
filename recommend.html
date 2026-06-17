@@ -303,7 +303,7 @@ function recommend() {
     dhtml += '<td>' + r.neckH + '</td>';
     dhtml += '<td>' + r.hardness + '</td>';
     dhtml += '<td>' + r.material + '</td>';
-    dhtml += '<td><span style="cursor:pointer;color:var(--accent);font-size:11px;text-decoration:underline;" onclick="showPillowUsers(\'' + r.id + '\')">' + r.userCount + '人</span></td></tr>';
+    dhtml += '<td><span class="user-link" data-pid="' + r.id + '" style="cursor:pointer;color:var(--accent);font-size:11px;text-decoration:underline;">' + r.userCount + '人</span></td></tr>';
     
     if (i === 0) {
       matchInfo = '<b>最佳匹配 ' + r.id + ' ' + r.brand + '</b><br>';
@@ -314,6 +314,13 @@ function recommend() {
     }
   }
   document.getElementById('analysisBody').innerHTML = dhtml;
+  // Add click handlers for user links
+  var links = document.getElementById('analysisBody').querySelectorAll('.user-link');
+  for (var li = 0; li < links.length; li++) {
+    links[li].addEventListener('click', function(e) {
+      showPillowUsers(this.getAttribute('data-pid'));
+    });
+  }
 
 function showPillowUsers(pid) {
   var ranked = window._ranked;
