@@ -583,29 +583,8 @@ function buildParamGrid() {
 function loadPillows() {
   fetch('data/pillows.json').then(function(r){ return r.json(); }).then(function(data){
     pillowData = data.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
-    var sel = document.getElementById('recPillowId');
-    sel.innerHTML = '<option value="">自定义</option>';
-    for (var i = 0; i < pillowData.length; i++) {
-      var p = pillowData[i];
-      var o = document.createElement('option');
-      o.value = p.id; o.textContent = p.id + ' - ' + p.brand;
-      sel.appendChild(o);
-    }
-  }).catch(function(e){ console.error(e); });
-}
-
-function loadUsers() {
-  fetch('data/users.json').then(function(r){ return r.json(); }).then(function(data){
-    userData = data;
-    var sel = document.getElementById('recUserId');
-    sel.innerHTML = '<option value="">手动输入</option>';
-    for (var i = 0; i < userData.length; i++) {
-      var u = userData[i];
-      var o = document.createElement('option');
-      o.value = u.id; o.textContent = u.id + ' - ' + u.name;
-      sel.appendChild(o);
-    }
-  }).catch(function(e){ console.error(e); });
+    refreshPillowDropdown();
+  }).catch(function(e){ console.error('Failed to load pillows:', e); });
 }
     refreshPillowDropdown();
   }).catch(function(e){ console.error('Failed to load pillows:', e); });
