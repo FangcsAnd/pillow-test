@@ -110,6 +110,18 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
   </div>
 
   <div class="card">
+    <div class="card-title">压力区域占比</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <canvas id="donutChart" width="140" height="140"></canvas>
+      <div style="display:flex;gap:14px;font-size:10px;color:rgba(255,255,255,0.5);">
+        <span style="color:#64d2ff;">&#9679; 头部 <span id="dlHead">0</span>%</span>
+        <span style="color:#ffeaa7;">&#9679; 颈部 <span id="dlNeck">0</span>%</span>
+        <span style="color:#ff7675;">&#9679; 肩部 <span id="dlShoulder">0</span>%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">被试信息 <button class="btn-sm" onclick="showAllUsers()" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:10px;">查看全部</button></div>
     <div class="row"><label>被试ID:</label><select id="recUserId" style="flex:1" onchange="onUserSelect()"><option value="">自定义</option></select></div>
     <div class="row"><label>姓名:</label><input style="flex:1" id="recName" readonly></div>
@@ -359,6 +371,53 @@ function updateParams(params) {
   for (var m = 0; m < map.length; m++) {
     var el = document.getElementById('pv_'+map[m][0]);
     if (el) el.textContent = typeof map[m][2] === 'number' ? Math.round(map[m][2]) : map[m][2];
+  }
+  document.getElementById('dlHead').textContent = params.head_ratio;
+  document.getElementById('dlNeck').textContent = params.neck_ratio;
+  document.getElementById('dlShoulder').textContent = params.shoulder_ratio;
+  drawDonutChart(params.head_ratio, params.neck_ratio, params.shoulder_ratio);
+}
+
+function drawDonutChart(headRatio, neckRatio, shoulderRatio) {
+  var canvas = document.getElementById('donutChart');
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width;
+  var h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  var total = headRatio + neckRatio + shoulderRatio;
+  if (total <= 0) return;
+  var cx = w / 2;
+  var cy = h / 2;
+  var outerR = 52;
+  var innerR = 32;
+  var segments = [
+    { ratio: headRatio, color: '#64d2ff' },
+    { ratio: neckRatio, color: '#ffeaa7' },
+    { ratio: shoulderRatio, color: '#ff7675' }
+  ];
+  var startAngle = -Math.PI / 2;
+  for (var i = 0; i < segments.length; i++) {
+    var seg = segments[i];
+    if (seg.ratio <= 0) continue;
+    var sweep = (seg.ratio / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR, startAngle, startAngle + sweep);
+    ctx.arc(cx, cy, innerR, startAngle + sweep, startAngle, true);
+    ctx.closePath();
+    ctx.fillStyle = seg.color;
+    ctx.fill();
+    if (sweep > 0.5) {
+      var midAngle = startAngle + sweep / 2;
+      var lr = (outerR + innerR) / 2;
+      var lx = cx + Math.cos(midAngle) * lr;
+      var ly = cy + Math.sin(midAngle) * lr;
+      ctx.fillStyle = '#1a1a2e';
+      ctx.font = 'bold 10px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(seg.ratio + '%', lx, ly);
+    }
+    startAngle += sweep;
   }
 }
 
