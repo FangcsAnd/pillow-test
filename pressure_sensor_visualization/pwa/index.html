@@ -828,6 +828,62 @@ function showAllUsers() {
   document.getElementById('modalOverlay').classList.add('show');
 }
 
+function showUserForm(idx) {
+  var u = idx >= 0 ? userData[idx] : {id:'',name:'',gender:'男',age:'',height:'',weight:'',shoulder_width:'',neck_curve:'[]',neck_history:'',neck_pain:''};
+  var html = '<div class="row"><label>ID:</label><input id="uf_id" value="' + u.id + '" readonly></div>';
+  html += '<div class="row"><label>姓名:</label><input id="uf_name" value="' + u.name + '"></div>';
+  html += '<div class="row"><label>性别:</label><select id="uf_gender"><option ' + (u.gender==='男'?'selected':'') + '>男</option><option ' + (u.gender==='女'?'selected':'') + '>女</option></select></div>';
+  html += '<div class="row"><label>年龄:</label><input id="uf_age" value="' + u.age + '"></div>';
+  html += '<div class="row"><label>身高:</label><input id="uf_height" value="' + u.height + '"></div>';
+  html += '<div class="row"><label>体重:</label><input id="uf_weight" value="' + u.weight + '"></div>';
+  html += '<div class="row"><label>肩宽:</label><input id="uf_shoulder" value="' + u.shoulder_width + '"></div>';
+  html += '<div class="row"><label>颈曲:</label><textarea id="uf_curve" style="height:40px;font-size:10px;">' + (u.neck_curve||'[]') + '</textarea></div>';
+  html += '<div class="row"><label>病史:</label><input id="uf_history" value="' + (u.neck_history||'') + '"></div>';
+  html += '<div class="row"><label>颈痛:</label><input id="uf_pain" value="' + (u.neck_pain||'') + '"></div>';
+  html += '<div style="margin-top:8px;"><button class="btn-primary" onclick="saveUser(' + idx + ')">保存</button> <button class="btn-sm" onclick="showAllUsers()" style="background:rgba(255,255,255,0.1);">取消</button></div>';
+  document.getElementById('modalTitle').textContent = idx >= 0 ? '编辑被试' : '新增被试';
+  document.getElementById('modalContent').innerHTML = html;
+}
+function saveUser(idx) {
+  var u = {
+    id: document.getElementById('uf_id').value,
+    name: document.getElementById('uf_name').value,
+    gender: document.getElementById('uf_gender').value,
+    age: document.getElementById('uf_age').value,
+    height: document.getElementById('uf_height').value,
+    weight: document.getElementById('uf_weight').value,
+    shoulder_width: document.getElementById('uf_shoulder').value,
+    neck_curve: document.getElementById('uf_curve').value,
+    neck_history: document.getElementById('uf_history').value,
+    neck_pain: document.getElementById('uf_pain').value
+  };
+  if (!u.name) { alert('姓名必填'); return; }
+  if (idx >= 0) userData[idx] = u;
+  else userData.push(u);
+  saveUserData();
+  refreshUserDropdown();
+  showAllUsers();
+}
+function editUser(idx) { showUserForm(idx); }
+function deleteUser(idx) {
+  if (!confirm('确定删除 ' + userData[idx].name + '？')) return;
+  userData.splice(idx, 1);
+  saveUserData();
+  showAllUsers();
+}
+function saveUserData() { localStorage.setItem('pillow_users', JSON.stringify(userData)); }
+function refreshUserDropdown() {
+  var sel = document.getElementById('recUserId');
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">手动输入</option>';
+  for (var i = 0; i < userData.length; i++) {
+    var o = document.createElement('option');
+    o.value = userData[i].id; o.textContent = userData[i].id + ' - ' + userData[i].name;
+    sel.appendChild(o);
+  }
+  sel.value = cur;
+}
+
 function addUser() {
   var maxNum = 0;
   for (var i = 0; i < userData.length; i++) {
