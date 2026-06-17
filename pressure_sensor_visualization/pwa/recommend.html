@@ -465,8 +465,20 @@ function runLocalRecommend() {
   for (var i=0;i<Math.min(5,ranked.length);i++){
     var t=ranked[i];
     rhtml+='<tr><td>'+(i+1)+'</td><td><b>'+t.id+'</b></td><td>'+t.brand+'</td><td>'+t.score.toFixed(1)+'</td><td>'+t.count+'次('+t.users+'人)</td><td>'+t.material+'</td></tr>';
-    ahtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td><td>'+t.users+'人/'+t.count+'次</td><td>'+t.neckH+'</td><td>'+t.hardness+'</td><td>'+t.material+'</td></tr>';
-    phtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td><td>'+t.headH+' mm</td><td>'+t.neckH+' mm</td><td>'+t.sideH+' mm</td><td>'+t.hardness+' HF</td><td>本地分析</td></tr>';
+     ahtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td><td>'+t.users+'人/'+t.count+'次</td><td>'+t.neckH+'</td><td>'+t.hardness+'</td><td>'+t.material+'</td></tr>';
+     // Match display with basic range comparison
+     var headMatch=recHeadH?Math.abs(t.headH-recHeadH)<=15:'?';
+     var neckMatch=recNeckH?Math.abs(t.neckH-recNeckH)<=12:'?';
+     var sideMatch=recSideH?Math.abs(t.sideH-recSideH)<=15:'?';
+     var hardMatch=(t.hardness>=rHardL&&t.hardness<=rHardH)?true:false;
+     var mc=(headMatch===true?1:0)+(neckMatch===true?1:0)+(sideMatch===true?1:0)+(hardMatch?1:0);
+     var matchPct=Math.round(mc/4*100);
+     phtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td>';
+     phtml+='<td style="color:'+(headMatch===true?'#30d158':headMatch==='?'?'rgba(255,255,255,0.3)':'#ff453a')+'">'+t.headH+' mm</td>';
+     phtml+='<td style="color:'+(neckMatch===true?'#30d158':neckMatch==='?'?'rgba(255,255,255,0.3)':'#ff453a')+'">'+t.neckH+' mm</td>';
+     phtml+='<td style="color:'+(sideMatch===true?'#30d158':sideMatch==='?'?'rgba(255,255,255,0.3)':'#ff453a')+'">'+t.sideH+' mm</td>';
+     phtml+='<td style="color:'+(hardMatch?'#30d158':'#ff453a')+'">'+t.hardness+' HF</td>';
+     phtml+='<td><b style="color:'+(matchPct>=75?'#30d158':matchPct>=50?'#fdcb6e':'#ff453a')+'">'+matchPct+'%</b> ('+mc+'/4)</td></tr>';
   }
   document.getElementById('resultBody').innerHTML=rhtml;
   document.getElementById('analysisBody').innerHTML=ahtml;
