@@ -492,15 +492,15 @@ async function deepseekRecommend() {
       h += '<div style="color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:16px;line-height:1.6;">' + summaryLine.replace(/\*/g,'') + '</div>';
     }
     
-    // Parameter cards row
-    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">';
-    if (aiHeadH) h += '<div class="card" style="padding:14px;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:22px;">📏</span><div><div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;">后脑勺高度</div><div style="font-size:18px;font-weight:700;color:#64d2ff;">'+aiHeadH[1]+' ~ '+aiHeadH[2]+'<span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.3);"> mm</span></div></div></div></div>';
-    if (aiNeckH) h += '<div class="card" style="padding:14px;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:22px;">🦴</span><div><div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;">颈椎高度</div><div style="font-size:18px;font-weight:700;color:#64d2ff;">'+aiNeckH[1]+' ~ '+aiNeckH[2]+'<span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.3);"> mm</span></div></div></div></div>';
-    if (aiSideH) h += '<div class="card" style="padding:14px;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:22px;">🛏️</span><div><div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;">侧睡区高度</div><div style="font-size:18px;font-weight:700;color:#64d2ff;">'+aiSideH[1]+' ~ '+aiSideH[2]+'<span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.3);"> mm</span></div></div></div></div>';
-    if (aiHard) h += '<div class="card" style="padding:14px;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:22px;">💪</span><div><div style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;">软硬度</div><div style="font-size:18px;font-weight:700;color:#64d2ff;">'+aiHard[1]+' ~ '+aiHard[2]+'<span style="font-size:11px;font-weight:400;color:rgba(255,255,255,0.3);"> HF</span></div></div></div></div>';
+    // Parameter cards row - no emoji
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">';
+    if (aiHeadH) h += '<div class="card" style="padding:10px 12px;"><div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;margin-bottom:2px;">后脑勺高度</div><div style="font-size:16px;font-weight:700;color:#64d2ff;">'+aiHeadH[1]+' ~ '+aiHeadH[2]+'<span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.25);"> mm</span></div></div>';
+    if (aiNeckH) h += '<div class="card" style="padding:10px 12px;"><div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;margin-bottom:2px;">颈椎高度</div><div style="font-size:16px;font-weight:700;color:#64d2ff;">'+aiNeckH[1]+' ~ '+aiNeckH[2]+'<span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.25);"> mm</span></div></div>';
+    if (aiSideH) h += '<div class="card" style="padding:10px 12px;"><div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;margin-bottom:2px;">侧睡区高度</div><div style="font-size:16px;font-weight:700;color:#64d2ff;">'+aiSideH[1]+' ~ '+aiSideH[2]+'<span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.25);"> mm</span></div></div>';
+    if (aiHard) h += '<div class="card" style="padding:10px 12px;"><div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;margin-bottom:2px;">软硬度</div><div style="font-size:16px;font-weight:700;color:#64d2ff;">'+aiHard[1]+' ~ '+aiHard[2]+'<span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.25);"> HF</span></div></div>';
     h += '</div>';
     
-    // Parse Top 3 pillows via medal emojis
+    // Parse Top 3 pillows via medal emojis and extract their detail text
     var topPillows = [];
     var emojis = ['🥇','🥈','🥉'];
     for (var ei=0;ei<3;ei++) {
@@ -511,30 +511,41 @@ async function deepseekRecommend() {
       if (!pidMatch2) continue;
       var pid = pidMatch2[0];
       var info = pillowInfo[pid] || {};
-      topPillows.push({rank:ei+1, id:pid, brand:info.brand||'未知', info:info});
+      // Extract the detail text after the pillow ID
+      var nextMedal = reply.indexOf(emojis[Math.min(ei+1, 2)], idx+2);
+      if (nextMedal<0) nextMedal = reply.indexOf('不推荐', idx);
+      if (nextMedal<0) nextMedal = reply.length;
+      var detail = reply.substring(idx+2, nextMedal).trim();
+      // Clean up - remove first line (emoji + name), keep reasons
+      var detailLines = detail.split('\n');
+      var reason = '';
+      for (var dl=1; dl<detailLines.length; dl++) {
+        var dline = detailLines[dl].trim().replace(/^\*+/,'').replace(/\*+$/,'').replace(/^- /,'');
+        if (dline.length > 5) reason += dline + '\n';
+      }
+      topPillows.push({rank:ei+1, id:pid, brand:info.brand||'', info:info, reason:reason.trim()});
     }
     
-    // Top 3 cards
+    // Top 3 cards with detail
     if (topPillows.length > 0) {
       h += '<div style="display:flex;gap:8px;margin-bottom:12px;">';
       for (var ti=0; ti<topPillows.length; ti++) {
         var t = topPillows[ti];
-        var info = t.info || pillowInfo[t.id] || {};
+        var info = t.info;
         var medal = ['🥇','🥈','🥉'][ti];
         var count = 0, users = {};
         for (var ri=0;ri<allRecords.length;ri++) if (allRecords[ri].pillow_id===t.id) { count++; users[allRecords[ri].user_id]=1; }
         var userN = Object.keys(users).length;
-        var goodRate = count>0 ? Math.round(userN/count*100) : 0;
-        h += '<div class="card" style="flex:1;min-width:170px;text-align:center;padding:12px;">';
-        h += '<div style="font-size:28px;">'+medal+'</div>';
-        h += '<div style="font-weight:700;font-size:13px;color:#fff;margin-top:2px;">'+t.id+'</div>';
-        h += '<div style="font-size:11px;color:rgba(255,255,255,0.6);">'+t.brand+'</div>';
-        h += '<div style="margin-top:6px;font-size:10px;color:rgba(255,255,255,0.4);line-height:1.6;">';
-        h += (info.material||'') + '<br>';
-        h += (info.head_height||'?') + ' / ' + (info.neck_height||'?') + ' / ' + (info.side_height||'?') + ' mm<br>';
-        h += '硬度 ' + (info.center_hardness||'?') + ' HF';
+        h += '<div class="card" style="flex:1;min-width:170px;padding:12px;">';
+        h += '<div style="text-align:center;font-size:24px;margin-bottom:2px;">'+medal+'</div>';
+        h += '<div style="text-align:center;font-weight:700;font-size:13px;color:#fff;">'+t.id+' <span style="color:rgba(255,255,255,0.6);font-size:11px;">'+t.brand+'</span></div>';
+        h += '<div style="margin-top:4px;font-size:10px;color:rgba(255,255,255,0.4);text-align:center;">';
+        h += (info.material||'') + ' | 后'+ (info.head_height||'?') + ' 颈'+ (info.neck_height||'?') + ' 侧'+ (info.side_height||'?') + 'mm | 硬度' + (info.center_hardness||'?') + 'HF';
         h += '</div>';
-        h += '<div style="margin-top:6px;font-size:10px;color:rgba(255,255,255,0.5);">测试 '+count+' 次 | '+userN+' 人</div>';
+        h += '<div style="margin-top:4px;font-size:10px;color:rgba(255,255,255,0.5);text-align:center;">测试 '+count+' 次 · '+userN+' 人</div>';
+        if (t.reason) {
+          h += '<div style="margin-top:6px;font-size:10px;color:rgba(255,255,255,0.55);line-height:1.5;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;">'+t.reason.replace(/\n/g,'<br>')+'</div>';
+        }
         h += '</div>';
       }
       h += '</div>';
