@@ -582,24 +582,17 @@ function buildParamGrid() {
 
 function loadPillows() {
   fetch('data/pillows.json').then(function(r){ return r.json(); }).then(function(data){
-    var saved = localStorage.getItem('pillow_pillows');
-    if (saved) {
-      pillowData = JSON.parse(saved);
-    } else {
-      pillowData = data.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
-    }
+    pillowData = data.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
+    refreshPillowDropdown();
+  }).catch(function(e){ console.error('Failed to load pillows:', e); });
+}
     refreshPillowDropdown();
   }).catch(function(e){ console.error('Failed to load pillows:', e); });
 }
 
 function loadUsers() {
   fetch('data/users.json').then(function(r){ return r.json(); }).then(function(data){
-    var saved = localStorage.getItem('pillow_users');
-    if (saved) {
-      userData = JSON.parse(saved);
-    } else {
-      userData = data;
-    }
+    userData = data;
     refreshUserDropdown();
   }).catch(function(e){ console.error('Failed to load users:', e); });
 }
