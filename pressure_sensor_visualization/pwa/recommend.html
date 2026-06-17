@@ -316,19 +316,20 @@ function recommend() {
   document.getElementById('analysisBody').innerHTML = dhtml;
 
 function showPillowUsers(pid) {
-  var ranked = window._ranked || [];
+  var ranked = window._ranked;
+  if (!ranked || !ranked.length) { alert('请先点击"开始推荐"生成结果'); return; }
   var r = null;
   for (var i = 0; i < ranked.length; i++) {
     if (ranked[i].id === pid) { r = ranked[i]; break; }
   }
-  if (!r) { alert('数据未加载，请先点开始推荐'); return; }
-  var users = r.users || {};
-  var html = '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">';
-  html += '<b>' + pid + '</b> 的测试用户：<br><br>';
+  if (!r || !r.users) { alert('未找到 ' + pid + ' 的数据'); return; }
+  var users = r.users;
   var uids = Object.keys(users);
+  if (!uids.length) { alert(pid + ' 暂无测试用户'); return; }
+  var html = '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">';
+  html += '<b>' + pid + ' ' + (r.brand||'') + '</b> 共 ' + uids.length + ' 位被试：<br><br>';
   for (var ui = 0; ui < uids.length; ui++) {
-    var uid = uids[ui];
-    html += '• <b>' + uid + '</b>（' + users[uid].length + '次测试）<br>';
+    html += '• ' + uids[ui] + '（' + users[uids[ui]].length + '次测试）<br>';
   }
   html += '</div>';
   document.getElementById('modalTitle').textContent = pid + ' 测试用户';
