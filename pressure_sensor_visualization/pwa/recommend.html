@@ -493,18 +493,31 @@ async function deepseekRecommend() {
       var pid = pillowIds[idx];
       if (shown[pid]) continue; shown[pid] = true;
       var info = pillowInfo[pid] || {};
-      var score = info.center_hardness ? 4 : 3;
-      var cls = score >= 3.4 ? 'good' : 'ok';
-      rhtml += '<tr><td>' + (idx+1) + '</td><td>' + pid + '</td><td>' + (info.brand||'?') + '</td>';
-      rhtml += '<td><b>' + score.toFixed(1) + '</b></td><td><span class="badge badge-green">AI推荐</span></td>';
-      rhtml += '<td>-</td><td><span style="font-size:10px;">AI分析</span></td><td><div class="score-bar"><div style="width:' + (score*20) + 'px;background:#30d158;"></div></div></td></tr>';
-      ahtml += '<tr><td><b>' + pid + '</b> ' + (info.brand||'') + '</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>' + (info.neck_height||'') + '</td><td>' + (info.center_hardness||'') + '</td><td>' + (info.material||'') + '</td></tr>';
+      var rawScore = info.center_hardness ? 4.0 : 3.5;
+      // Calculate real stats from records
+      var count = 0, userSet = {};
+      for (var ri = 0; ri < allRecords.length; ri++) {
+        if (allRecords[ri].pillow_id === pid) { count++; userSet[allRecords[ri].user_id] = 1; }
+      }
+      var userCount = Object.keys(userSet).length;
+      var label = rawScore >= 42 ? '超出期待(惊喜)' : (rawScore >= 3.4 ? '不错(还不错)' : '能接受');
+      rhtml += '<tr><td>' + (idx+1) + '</td><td><b>' + pid + '</b></td><td>' + (info.brand||'?') + '</td>';
+      rhtml += '<td>' + rawScore.toFixed(1) + ' ' + label + '</td>';
+      rhtml += '<td><span class="badge badge-green">AI推荐</span></td>';
+      rhtml += '<td>' + count + '次 (' + userCount + '人)</td>';
+      rhtml += '<td><span style="font-size:10px;color:rgba(255,255,255,0.4);">AI分析推荐</span></td>';
+      rhtml += '<td><div class="score-bar"><div style="width:' + (rawScore*20) + 'px;background:#30d158;"></div></div></td></tr>';
+      
+      ahtml += '<tr><td><b>' + pid + '</b> ' + (info.brand||'') + '</td>';
+      ahtml += '<td>-</td><td>-</td><td>' + userCount + '人/' + count + '次</td><td>-</td>';
+      ahtml += '<td>-</td><td>-</td><td>' + (info.neck_height||'?') + '</td><td>' + (info.center_hardness||'?') + '</td><td>' + (info.material||'?') + '</td></tr>';
+      
       phtml += '<tr><td><b>' + pid + '</b> ' + (info.brand||'') + '</td>';
-      phtml += '<td style="color:rgba(255,255,255,0.5)">' + (info.head_height||'?') + ' mm</td>';
-      phtml += '<td style="color:rgba(255,255,255,0.5)">' + (info.neck_height||'?') + ' mm</td>';
-      phtml += '<td style="color:rgba(255,255,255,0.5)">' + (info.side_height||'?') + ' mm</td>';
-      phtml += '<td style="color:rgba(255,255,255,0.5)">' + (info.center_hardness||'?') + ' HF</td>';
-      phtml += '<td>AI推荐</td></tr>';
+      phtml += '<td>' + (info.head_height||'?') + ' mm</td>';
+      phtml += '<td>' + (info.neck_height||'?') + ' mm</td>';
+      phtml += '<td>' + (info.side_height||'?') + ' mm</td>';
+      phtml += '<td>' + (info.center_hardness||'?') + ' HF</td>';
+      phtml += '<td><span style="font-size:10px;color:rgba(255,255,255,0.4);">AI推荐</span></td></tr>';
     }
     document.getElementById('resultBody').innerHTML = rhtml || '<tr><td colspan="8" style="color:rgba(255,255,255,0.4);">查看上方AI分析详情</td></tr>';
     document.getElementById('analysisBody').innerHTML = ahtml || '<tr><td colspan="10" style="color:rgba(255,255,255,0.4);">查看上方AI分析详情</td></tr>';
