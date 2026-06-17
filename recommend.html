@@ -59,6 +59,9 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
 .score-bar div { height:100%; border-radius:2px; }
 #result { display:none; }
 #dataInfo { color:rgba(255,255,255,0.4); }
+.modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal-box { background:rgba(44,44,58,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:20px; max-width:600px; max-height:70vh; overflow-y:auto; width:90%; backdrop-filter:blur(20px); }
 </style>
 </head>
 <body>
@@ -246,6 +249,7 @@ function recommend() {
       hardness: info.center_hardness || '',
       score: finalScore,
       rawAvg: rawAvg,
+      users: p.users,
       weightedAvg: weightedAvg,
       count: p.count,
       supineAvg: p.supineScores.length ? p.supineScores.reduce(function(a,b){return a+b;},0)/p.supineScores.length : 0,
@@ -297,7 +301,8 @@ function recommend() {
     dhtml += '<td>' + r.sideAvg.toFixed(1) + '</td>';
     dhtml += '<td>' + r.neckH + '</td>';
     dhtml += '<td>' + r.hardness + '</td>';
-    dhtml += '<td>' + r.material + '</td></tr>';
+    dhtml += '<td>' + r.material + '</td>';
+    dhtml += '<td><button class="btn-sm" onclick="showPillowUsers(\'' + r.id + '\',' + i + ')" style="background:rgba(255,255,255,0.1);font-size:9px;">查看</button></td></tr>';
     
     if (i === 0) {
       matchInfo = '<b>最佳匹配 ' + r.id + ' ' + r.brand + '</b><br>';
@@ -308,11 +313,32 @@ function recommend() {
     }
   }
   document.getElementById('analysisBody').innerHTML = dhtml;
+
+function showPillowUsers(pid, rankIdx) {
+  var r = ranked[rankIdx];
+  var users = r.users || {};
+  var html = '<div style="font-size:12px;line-height:1.8;color:rgba(255,255,255,0.8);">';
+  html += '<b>' + pid + '</b> 的测试用户：<br><br>';
+  var uids = Object.keys(users);
+  for (var ui = 0; ui < uids.length; ui++) {
+    var uid = uids[ui];
+    html += '• <b>' + uid + '</b>（' + users[uid].length + '次测试）<br>';
+  }
+  html += '</div>';
+  document.getElementById('modalTitle').textContent = pid + ' 测试用户';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
   document.getElementById('matchDetail').innerHTML = matchInfo;
 }
 
 // Auto-load on open
 loadData();
+
+function closeModalRec(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('show');
+}
 
 // Generate stars
 var bgEl = document.getElementById('bgElements');
@@ -331,6 +357,15 @@ for (var i = 0; i < 3; i++) {
   bgEl.appendChild(cloud);
 }
 </script>
+</div>
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalRec(event)">
+  <div class="modal-box" id="modalBox" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span id="modalTitle" style="font-weight:600;font-size:14px;color:#fff;"></span>
+      <button class="btn-sm" onclick="closeModalRec()" style="background:rgba(255,255,255,0.1);color:#fff;">关闭</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
 </div>
 </body>
 </html>
