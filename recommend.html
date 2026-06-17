@@ -486,7 +486,7 @@ async function deepseekRecommend() {
     document.getElementById('analysisBody').innerHTML = '';
     document.getElementById('paramCompareBody').innerHTML = '';
     // Extract pillow IDs from reply and show in tables
-    var pillowIds = reply.match(/p\d+/g) || [];
+    var pillowIds = reply.match(/p\d{3}/g) || [];
     var shown = {};
     var rhtml = '', ahtml = '', phtml = '';
     for (var idx = 0; idx < Math.min(5, pillowIds.length); idx++) {
