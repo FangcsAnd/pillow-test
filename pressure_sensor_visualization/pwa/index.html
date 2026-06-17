@@ -75,6 +75,13 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 #heatmapWrap { flex: 1; display: flex; align-items: center; justify-content: center; }
 #heatmap { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
 #helpPopup { display: none; position: absolute; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 12px; max-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; color: var(--text); }
+.modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal-box { background:rgba(44,44,58,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:20px; max-width:750px; max-height:80vh; overflow-y:auto; width:90%; backdrop-filter:blur(20px); }
+.modal-box table { width:100%; border-collapse:collapse; }
+.modal-box th { padding:6px 8px; text-align:left; font-size:11px; color:rgba(255,255,255,0.5); border-bottom:1px solid rgba(255,255,255,0.1); }
+.modal-box td { padding:5px 8px; font-size:11px; color:rgba(255,255,255,0.8); border-bottom:1px solid rgba(255,255,255,0.05); }
+.modal-box tr:hover td { background:rgba(255,255,255,0.05); }
 </style>
 </head>
 <body>
@@ -103,7 +110,7 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
   </div>
 
   <div class="card">
-    <div class="card-title">被试信息</div>
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">被试信息 <button class="btn-sm" onclick="showAllUsers()" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:10px;">查看全部</button></div>
     <div class="row"><label>被试ID:</label><select id="recUserId" style="flex:1" onchange="onUserSelect()"><option value="">自定义</option></select></div>
     <div class="row"><label>姓名:</label><input style="flex:1" id="recName" readonly></div>
     <div class="row"><label>性别:</label><input style="flex:1" id="recGender" readonly></div>
@@ -117,7 +124,7 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
   </div>
 
   <div class="card">
-    <div class="card-title">枕头信息</div>
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">枕头信息 <button class="btn-sm" onclick="showAllPillows()" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:10px;">查看全部</button></div>
     <div class="row"><label>枕头ID:</label><select id="recPillowId" style="flex:1" onchange="onPillowSelect()"><option value="">自定义</option></select></div>
     <div class="row"><label>品牌:</label><input style="flex:1" id="recBrand" readonly></div>
     <div class="row"><label>材质:</label><input style="flex:1" id="recMaterial" readonly></div>
@@ -153,6 +160,7 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
     <div style="display:flex;gap:6px;">
       <button id="recordBtn" class="btn-primary" style="flex:1;padding:10px;" onclick="recordData()" disabled>记录数据</button>
       <button class="btn-primary" style="padding:10px;" onclick="exportCSV()">导出</button>
+      <button class="btn-primary" style="padding:10px;" onclick="window.open('recommend.html','_blank')">推荐</button>
     </div>
   </div>
 
@@ -167,6 +175,15 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
 <div id="helpPopup"></div>
 
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-box" id="modalBox" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span id="modalTitle" style="font-weight:600;font-size:14px;color:#fff;"></span>
+      <button class="btn-sm" onclick="closeModal()" style="background:rgba(255,255,255,0.1);color:#fff;">关闭</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
 <script>
 var SIZE = 16;
 var currentGrid = [];
@@ -347,14 +364,13 @@ function updateParams(params) {
 
 function showParamHelp(key, btn) {
   var p = document.getElementById('helpPopup');
-  p.textContent = key;
-  var rect = btn.getBoundingClientRect();
-  p.style.left = (rect.right + 6) + 'px';
-  p.style.top = (rect.top - 4) + 'px';
+  p.innerHTML = '<span style="color:#fff;font-size:12px;">' + key + '</span>';
   p.style.display = 'block';
-  setTimeout(function(){
-    if (p.style.display === 'block') p.style.display = 'none';
-  }, 3000);
+  var r = btn.getBoundingClientRect();
+  p.style.left = Math.min(r.right + 6, window.innerWidth - 230) + 'px';
+  p.style.top = r.top + 'px';
+  clearTimeout(p._timer);
+  p._timer = setTimeout(function(){ p.style.display = 'none'; }, 3000);
 }
 
 document.addEventListener('click', function(e) {
@@ -799,21 +815,50 @@ function dedupeRecords(records) {
 
 function refreshHistory() { loadHistory(); }
 
+function showAllUsers() {
+  var html = '<table><tr><th>ID</th><th>姓名</th><th>性别</th><th>年龄</th><th>身高</th><th>体重</th><th>肩宽</th><th>病史</th><th>颈痛</th></tr>';
+  for (var i = 0; i < userData.length; i++) {
+    var u = userData[i];
+    html += '<tr><td>' + u.id + '</td><td>' + u.name + '</td><td>' + u.gender + '</td><td>' + u.age + '</td><td>' + u.height + '</td><td>' + u.weight + '</td><td>' + u.shoulder_width + '</td><td>' + (u.neck_history||'') + '</td><td>' + (u.neck_pain||'') + '</td></tr>';
+  }
+  html += '</table>';
+  document.getElementById('modalTitle').textContent = '全部被试信息 (' + userData.length + '人)';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function showAllPillows() {
+  var html = '<table><tr><th>ID</th><th>品牌</th><th>材质</th><th>尺寸</th><th>后脑勺高</th><th>颈高</th><th>侧高</th><th>中心硬度</th><th>颈硬度</th></tr>';
+  for (var i = 0; i < pillowData.length; i++) {
+    var p = pillowData[i];
+    html += '<tr><td>' + p.id + '</td><td>' + p.brand + '</td><td>' + p.material + '</td><td>' + p.size + '</td><td>' + p.head_height + '</td><td>' + p.neck_height + '</td><td>' + p.side_height + '</td><td>' + (p.center_hardness||'') + '</td><td>' + (p.neck_hardness||'') + '</td></tr>';
+  }
+  html += '</table>';
+  document.getElementById('modalTitle').textContent = '全部枕头信息 (' + pillowData.length + '款)';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
 function refreshHistoryUI() {
   var records = historyRecords;
   var html = '';
   for (var idx = records.length - 1; idx >= 0; idx--) {
     var r = records[idx];
     var c = r.comfort || {};
-    var score = parseInt(c.comfort_total) || 0;
-    var cls = score >= 6 ? 'good' : (score >= 3 ? 'ok' : 'bad');
+    var cl = computeComfortLabel(c);
+    var cls = cl.score >= 3.4 ? 'good' : (cl.score >= 2.6 ? 'ok' : 'bad');
     html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
     html += '<div style="font-size:9px;opacity:0.8;">' + (r.time||'') + '</div>';
     html += '<div style="font-size:10px;font-weight:600;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
-    html += '<div class="hscore">' + (c.comfort_total||'?') + '</div>';
+    html += '<div class="hscore">' + cl.label + '</div>';
     html += '<div style="font-size:9px;">' + (r.pillow_id||'') + ' ' + (r.sleep_pos||'') + '</div>';
-    html += '<div class="hsub">仰' + (c.comfort_supine||0) + ' 侧' + (c.comfort_side||0) + ' 撑' + (c.comfort_neck||0) + '</div>';
-    html += '<div class="hsub">包' + (c.comfort_head||0) + ' 压' + (c.comfort_pressure||0) + ' 热' + (c.comfort_heat||0) + '</div>';
+    html += '<div class="hsub">仰' + convertOldScore(c.comfort_supine) + ' 侧' + convertOldScore(c.comfort_side) + ' 撑' + convertOldScore(c.comfort_neck) + '</div>';
+    html += '<div class="hsub">包' + convertOldScore(c.comfort_head) + ' 压' + convertOldScore(c.comfort_pressure) + ' 热' + convertOldScore(c.comfort_heat) + '</div>';
     html += '</div>';
   }
   document.getElementById('historyCards').innerHTML = html;
