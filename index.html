@@ -874,7 +874,7 @@ function dedupeRecords(records) {
 function refreshHistory() { loadHistory(); }
 
 function showAllUsers() {
-  var html = '<div style="margin-bottom:8px;"><button class="btn-sm" onclick="addUser()" style="background:var(--accent);color:#000;">新增被试</button></div>';
+  var html = '<div style="margin-bottom:8px;display:flex;gap:6px;"><button class="btn-sm" onclick="addUser()" style="background:var(--accent);color:#000;">新增</button><button class="btn-sm" onclick="exportUserData()" style="background:rgba(255,255,255,0.1);">下载JSON</button></div>';
   html += '<table><tr><th>ID</th><th>姓名</th><th>性别</th><th>年龄</th><th>身高</th><th>体重</th><th>肩宽</th><th>病史</th><th>颈痛</th><th>操作</th></tr>';
   for (var i = 0; i < userData.length; i++) {
     var u = userData[i];
@@ -954,7 +954,7 @@ function addUser() {
 }
 
 function showAllPillows() {
-  var html = '<div style="margin-bottom:8px;"><button class="btn-sm" onclick="addPillow()" style="background:var(--accent);color:#000;">新增枕头</button></div>';
+  var html = '<div style="margin-bottom:8px;display:flex;gap:6px;"><button class="btn-sm" onclick="addPillow()" style="background:var(--accent);color:#000;">新增</button><button class="btn-sm" onclick="exportPillowData()" style="background:rgba(255,255,255,0.1);">下载JSON</button></div>';
   html += '<table><tr><th>ID</th><th>品牌</th><th>材质</th><th>尺寸</th><th>后脑勺高</th><th>颈高</th><th>侧高</th><th>中心硬度</th><th>颈硬度</th><th>操作</th></tr>';
   for (var i = 0; i < pillowData.length; i++) {
     var p = pillowData[i];
@@ -965,6 +965,21 @@ function showAllPillows() {
   document.getElementById('modalTitle').textContent = '枕头信息管理 (' + pillowData.length + '款)';
   document.getElementById('modalContent').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('show');
+}
+
+function exportPillowData() {
+  var blob = new Blob([JSON.stringify(pillowData, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pillows.json';
+  a.click();
+}
+function exportUserData() {
+  var blob = new Blob([JSON.stringify(userData, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'users.json';
+  a.click();
 }
 
 function addPillow() {
