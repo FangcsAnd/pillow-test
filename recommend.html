@@ -455,7 +455,12 @@ async function deepseekRecommend() {
   var prompt = '你是枕头推荐专家。根据以下数据推荐最佳枕头：\n';
   prompt += '用户：身高' + height + 'cm 体重' + weight + 'kg 肩宽' + shoulder + 'cm 睡姿' + sleepPos + ' 颈曲' + (neckCurveText||'无') + '\n';
   prompt += '候选枕头：\n' + pillowSummary.join('\n') + '\n';
-  prompt += '请推荐前3名，说明理由，包括高度匹配、硬度匹配、历史好评率。返回中文。';
+  prompt += '请按以下格式输出：\n';
+  prompt += '推荐后脑勺高度：XX ~ XX mm\n';
+  prompt += '推荐颈椎高度：XX ~ XX mm\n';
+  prompt += '推荐侧睡区高度：XX ~ XX mm\n';
+  prompt += '推荐软硬度：XX ~ XX HF\n';
+  prompt += '推荐枕头排名：Top3 枕头ID及理由（结合高度匹配、硬度匹配、历史好评率）';
 
   document.getElementById('recommendedParams').innerHTML = '<span style="color:var(--accent);">AI 分析中...</span>';
   document.getElementById('result').style.display = 'block';
