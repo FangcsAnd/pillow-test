@@ -73,7 +73,7 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
     <label>肩宽(cm):</label><input id="shoulder" value="16" style="width:80px;">
   </div>
   <div class="row"><label>颈椎曲度:</label><textarea id="neckCurveText" style="flex:1;height:60px;font-size:11px;font-family:monospace;" placeholder="粘贴颈椎曲度数组，如 [0,0,0.2,0.9,1.7,...]"></textarea></div>
-  <div class="row"><label>睡姿:</label><select id="sleepPos"><option>仰睡</option><option>侧睡</option></select></div>
+  <div class="row">    <label>习惯睡姿:</label><select id="sleepPos"><option>仰睡</option><option>侧睡</option></select></div>
   <button class="btn-primary" onclick="deepseekRecommend()" style="background:#536dfe;">AI 分析推荐</button>
   <button class="btn-success" onclick="loadData()" style="margin-left:8px;">加载数据</button>
   <span id="dataInfo" style="font-size:11px;color:#636e72;margin-left:8px;"></span>
