@@ -588,6 +588,7 @@ function loadPillows() {
     } else {
       pillowData = data;
     }
+    pillowData = pillowData.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
     refreshPillowDropdown();
   }).catch(function(e){ console.error('Failed to load pillows:', e); });
 }
