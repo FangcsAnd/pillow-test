@@ -303,7 +303,7 @@ function recommend() {
     dhtml += '<td>' + r.neckH + '</td>';
     dhtml += '<td>' + r.hardness + '</td>';
     dhtml += '<td>' + r.material + '</td>';
-    dhtml += '<td><button class="btn-sm" onclick="showPillowUsers(\'' + r.id + '\')" style="background:rgba(255,255,255,0.1);font-size:9px;">查看</button></td></tr>';
+    dhtml += '<td><span style="cursor:pointer;color:var(--accent);font-size:11px;text-decoration:underline;" onclick="showPillowUsers(\'' + r.id + '\')">' + r.userCount + '人</span></td></tr>';
     
     if (i === 0) {
       matchInfo = '<b>最佳匹配 ' + r.id + ' ' + r.brand + '</b><br>';
