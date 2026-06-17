@@ -828,9 +828,9 @@ function showAllUsers() {
   document.getElementById('modalOverlay').classList.add('show');
 }
 
-function showUserForm(idx) {
-  var u = idx >= 0 ? userData[idx] : {id:'',name:'',gender:'男',age:'',height:'',weight:'',shoulder_width:'',neck_curve:'[]',neck_history:'',neck_pain:''};
-  var html = '<div class="row"><label>ID:</label><input id="uf_id" value="' + u.id + '" readonly></div>';
+function showUserForm(idx, newId) {
+  var u = idx >= 0 ? userData[idx] : {id:newId||'',name:'',gender:'男',age:'',height:'',weight:'',shoulder_width:'',neck_curve:'[]',neck_history:'',neck_pain:''};
+  var html = '<div class="row"><label>ID:</label><input id="uf_id" value="' + u.id + '" ' + (idx>=0?'readonly':'readonly') + '></div>';
   html += '<div class="row"><label>姓名:</label><input id="uf_name" value="' + u.name + '"></div>';
   html += '<div class="row"><label>性别:</label><select id="uf_gender"><option ' + (u.gender==='男'?'selected':'') + '>男</option><option ' + (u.gender==='女'?'selected':'') + '>女</option></select></div>';
   html += '<div class="row"><label>年龄:</label><input id="uf_age" value="' + u.age + '"></div>';
@@ -858,8 +858,8 @@ function saveUser(idx) {
     neck_pain: document.getElementById('uf_pain').value
   };
   if (!u.name) { alert('姓名必填'); return; }
-  if (idx >= 0) userData[idx] = u;
-  else userData.push(u);
+  if (idx >= 0) { userData[idx] = u; }
+  else { userData.push(u); }
   saveUserData();
   refreshUserDropdown();
   showAllUsers();
@@ -891,11 +891,7 @@ function addUser() {
     if (m) { var n = parseInt(m[1]); if (n > maxNum) maxNum = n; }
   }
   var newId = 'S' + ('000' + (maxNum + 1)).slice(-3);
-  var u = {id:newId, name:'', gender:'男', age:'', height:'', weight:'', shoulder_width:'', neck_curve:'[]', neck_history:'', neck_pain:''};
-  userData.push(u);
-  saveUserData();
-  refreshUserDropdown();
-  showUserForm(userData.length - 1);
+  showUserForm(-1, newId);
 }
 
 function showAllPillows() {
@@ -919,11 +915,7 @@ function addPillow() {
     if (m) { var n = parseInt(m[1]); if (n > maxNum) maxNum = n; }
   }
   var newId = 'p' + ('000' + (maxNum + 1)).slice(-3);
-  var p = {id:newId, brand:'', material:'', size:'', head_height:'', neck_height:'', side_height:'', center_hardness:'', neck_hardness:'', edge_hardness_l:'', edge_hardness_r:''};
-  pillowData.push(p);
-  savePillowData();
-  refreshPillowDropdown();
-  showPillowForm(pillowData.length - 1);
+  showPillowForm(-1, newId);
 }
 function editPillow(idx) { showPillowForm(idx); }
 function deletePillow(idx) {
@@ -933,9 +925,9 @@ function deletePillow(idx) {
   showAllPillows();
 }
 
-function showPillowForm(idx) {
-  var p = idx >= 0 ? pillowData[idx] : {id:'',brand:'',material:'',size:'',head_height:'',neck_height:'',side_height:'',center_hardness:'',neck_hardness:'',edge_hardness_l:'',edge_hardness_r:''};
-  var html = '<div class="row"><label>ID:</label><input id="pf_id" value="' + p.id + '" ' + (idx>=0?'readonly':'') + '></div>';
+function showPillowForm(idx, newId) {
+  var p = idx >= 0 ? pillowData[idx] : {id:newId||'',brand:'',material:'',size:'',head_height:'',neck_height:'',side_height:'',center_hardness:'',neck_hardness:'',edge_hardness_l:'',edge_hardness_r:''};
+  var html = '<div class="row"><label>ID:</label><input id="pf_id" value="' + p.id + '" readonly></div>';
   html += '<div class="row"><label>品牌:</label><input id="pf_brand" value="' + p.brand + '"></div>';
   html += '<div class="row"><label>材质:</label><input id="pf_material" value="' + p.material + '"></div>';
   html += '<div class="row"><label>尺寸:</label><input id="pf_size" value="' + p.size + '"></div>';
