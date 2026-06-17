@@ -586,49 +586,6 @@ function drawNeckCurve(data) {
     var x = ox + w - (data[i]/maxVal)*w, y = oy + i*stepY;
     if (i === 0) ctxN.moveTo(x, y); else ctxN.lineTo(x, y);
   }
-  ctxN.stroke();
-  ctxN.fillStyle = 'rgba(58,134,255,0.12)'; ctxN.beginPath();
-  ctxN.moveTo(ox+w, oy);
-  for (var i = 0; i < data.length; i++) ctxN.lineTo(ox+w - (data[i]/maxVal)*w, oy + i*stepY);
-  ctxN.lineTo(ox+w, oy+h); ctxN.closePath(); ctxN.fill();
-}
-
-function updateComfortTotal() {
-  var w = { overall:45, supine:25, side:25, neck:2, head:1, even:1, fall:0, turn:0, pressure:1, heat:0 };
-  var ids = { overall:'comfort_overall', supine:'comfort_supine', side:'comfort_side', neck:'comfort_neck', head:'comfort_head', even:'comfort_even', fall:'comfort_fall', turn:'comfort_turn', pressure:'comfort_pressure', heat:'comfort_heat' };
-  var total = 0, tw = 0;
-  for (var k in w) { var v = parseInt(document.getElementById(ids[k]).value); total += v * w[k]; tw += w[k]; }
-  var score = tw > 0 ? total / tw : 3;
-  var label = score < 1.8 ? '很差(垃圾)' : (score < 2.6 ? '差(不太舒服)' : (score < 3.4 ? '能接受' : (score < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
-  document.getElementById('comfortTotal').textContent = label;
-}
-function getComfortData() {
-  return {
-    comfort_overall: parseInt(document.getElementById('comfort_overall').value),
-    comfort_neck: parseInt(document.getElementById('comfort_neck').value),
-    comfort_head: parseInt(document.getElementById('comfort_head').value),
-    comfort_supine: parseInt(document.getElementById('comfort_supine').value),
-    comfort_side: parseInt(document.getElementById('comfort_side').value),
-    comfort_even: parseInt(document.getElementById('comfort_even').value),
-    comfort_fall: parseInt(document.getElementById('comfort_fall').value),
-    comfort_turn: parseInt(document.getElementById('comfort_turn').value),
-    comfort_pressure: parseInt(document.getElementById('comfort_pressure').value),
-    comfort_heat: parseInt(document.getElementById('comfort_heat').value),
-    comfort_total: 0
-  };
-}
-function computeComfortLabel(c) {
-  var w = { overall:45, supine:25, side:25, neck:2, head:1, even:1, fall:0, turn:0, pressure:1, heat:0 };
-  var total = 0, tw = 0;
-  for (var k in w) { var v = convertOldScore(c['comfort_' + k]); total += v * w[k]; tw += w[k]; }
-  var score = tw > 0 ? total / tw : 3;
-  var label = score < 1.8 ? '很差(垃圾)' : (score < 2.6 ? '差(不太舒服)' : (score < 3.4 ? '能接受' : (score < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
-  return { score: score, label: label };
-}
-function convertOldScore(v) {
-  if (v === undefined || v === null) return 3;
-  if (v <= -5) return 1; if (v <= -1) return 2; if (v <= 3) return 3; if (v <= 7) return 4;
-  return 5;
 }
 
 function onPillowSelect() {
