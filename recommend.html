@@ -483,40 +483,64 @@ async function deepseekRecommend() {
     var aiSideH = reply.match(/侧睡区高度[：:]\s*(\d+)\s*~\s*(\d+)/);
     var aiHard = reply.match(/软硬度[：:]\s*(\d+)\s*~\s*(\d+)/);
     
-    // Build styled response
-    var html = '<div style="font-size:13px;line-height:1.8;color:rgba(255,255,255,0.85);">';
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">';
-    if (aiHeadH) html += '<div class="card" style="text-align:center;"><div style="color:rgba(255,255,255,0.5);font-size:10px;">后脑勺高度</div><div style="font-size:20px;font-weight:700;color:#64d2ff;">' + aiHeadH[1] + '~' + aiHeadH[2] + '</div><div style="font-size:10px;color:rgba(255,255,255,0.4);">mm</div></div>';
-    if (aiNeckH) html += '<div class="card" style="text-align:center;"><div style="color:rgba(255,255,255,0.5);font-size:10px;">颈椎高度</div><div style="font-size:20px;font-weight:700;color:#64d2ff;">' + aiNeckH[1] + '~' + aiNeckH[2] + '</div><div style="font-size:10px;color:rgba(255,255,255,0.4);">mm</div></div>';
-    if (aiSideH) html += '<div class="card" style="text-align:center;"><div style="color:rgba(255,255,255,0.5);font-size:10px;">侧睡区高度</div><div style="font-size:20px;font-weight:700;color:#64d2ff;">' + aiSideH[1] + '~' + aiSideH[2] + '</div><div style="font-size:10px;color:rgba(255,255,255,0.4);">mm</div></div>';
-    if (aiHard) html += '<div class="card" style="text-align:center;"><div style="color:rgba(255,255,255,0.5);font-size:10px;">软硬度</div><div style="font-size:20px;font-weight:700;color:#64d2ff;">' + aiHard[1] + '~' + aiHard[2] + '</div><div style="font-size:10px;color:rgba(255,255,255,0.4);">HF</div></div>';
-    html += '</div>';
-    
-    // Parse pillow reasons
-    var sections = reply.split(/第\d+名[：:]|推荐枕头排名|### /);
-    html += '<div style="color:rgba(255,255,255,0.7);">';
-    var lines = reply.split('\n');
-    for (var li = 0; li < lines.length; li++) {
-      var line = lines[li].trim();
-      if (!line || line === '---') continue;
-      if (line.indexOf('第')===0 || line.indexOf('**第')===0) {
-        html += '<div style="margin-top:8px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border-left:3px solid var(--accent);">';
-        html += '<b style="color:var(--accent);">' + line.replace(/\*\*/g,'') + '</b><br>';
-      } else if (line.indexOf('**不推荐')===0 || line.indexOf('不推荐说明')===0) {
-        html += '</div><div style="margin-top:8px;padding:10px;background:rgba(255,69,58,0.08);border-radius:8px;border-left:3px solid var(--danger);">';
-        html += '<b style="color:var(--danger);">' + line.replace(/\*\*/g,'') + '</b><br>';
-      } else if (line.indexOf('推荐后脑勺')===0 || line.indexOf('推荐颈椎')===0 || line.indexOf('推荐侧睡')===0 || line.indexOf('推荐软硬')===0) {
-        continue;
-      } else {
-        var clean = line.replace(/^[-*•]+\s*/, '').replace(/\*\*/g,'');
-        if (clean.length > 3) html += '<span style="font-size:11px;color:rgba(255,255,255,0.6);">' + clean + '</span><br>';
+    // Parse top pillows
+    var topPillows = [];
+    var parts = reply.split(/第\d+名[：:]/);
+    for (var pi = 1; pi < parts.length; pi++) {
+      var ptext = parts[pi];
+      var pidMatch = ptext.match(/p\d{3}/);
+      if (!pidMatch) continue;
+      var pid = pidMatch[0];
+      var info = pillowInfo[pid] || {};
+      // Parse reason
+      var reason = '';
+      var lines = ptext.split('\n');
+      for (var li = 0; li < lines.length; li++) {
+        var l = lines[li].trim().replace(/^\*+/,'').replace(/\*+$/,'').replace(/^- /,'').trim();
+        if (l.indexOf('理由')===0 || l.indexOf('综合')===0 || l.indexOf('推荐')===0) {
+          reason = l; break;
+        }
       }
+      var brand = info.brand || pidMatch.input.match(new RegExp(pid+'[^*]*\\*\\*([^*]+)\\*\\*'))?.[1] || '';
+      if (!brand) {
+        var bm = ptext.match(/\*\*([^*]+)\*\*/);
+        if (bm && bm[1].length < 20) brand = bm[1];
+      }
+      topPillows.push({id:pid, brand:brand||info.brand||'', material:info.material||'', 
+        headH:info.head_height||'', neckH:info.neck_height||'', sideH:info.side_height||'',
+        hardness:info.center_hardness||'', reason:reason});
     }
-    html += '</div></div>';
     
-    document.getElementById('recommendedParams').innerHTML = html;
+    // Build beautiful template
+    var h = '';
+    h += '<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">';
+    if (aiHeadH) h += '<div class="card" style="flex:1;min-width:140px;text-align:center;"><div style="font-size:28px;">📏</div><div style="color:rgba(255,255,255,0.5);font-size:10px;letter-spacing:0.5px;">后脑勺高度</div><div style="font-size:22px;font-weight:700;color:#64d2ff;">'+aiHeadH[1]+'<span style="font-size:14px;"> ~ '+aiHeadH[2]+'</span></div><div style="font-size:10px;color:rgba(255,255,255,0.3);">mm</div></div>';
+    if (aiNeckH) h += '<div class="card" style="flex:1;min-width:140px;text-align:center;"><div style="font-size:28px;">🦴</div><div style="color:rgba(255,255,255,0.5);font-size:10px;letter-spacing:0.5px;">颈椎高度</div><div style="font-size:22px;font-weight:700;color:#64d2ff;">'+aiNeckH[1]+'<span style="font-size:14px;"> ~ '+aiNeckH[2]+'</span></div><div style="font-size:10px;color:rgba(255,255,255,0.3);">mm</div></div>';
+    if (aiSideH) h += '<div class="card" style="flex:1;min-width:140px;text-align:center;"><div style="font-size:28px;">🛏️</div><div style="color:rgba(255,255,255,0.5);font-size:10px;letter-spacing:0.5px;">侧睡区高度</div><div style="font-size:22px;font-weight:700;color:#64d2ff;">'+aiSideH[1]+'<span style="font-size:14px;"> ~ '+aiSideH[2]+'</span></div><div style="font-size:10px;color:rgba(255,255,255,0.3);">mm</div></div>';
+    if (aiHard) h += '<div class="card" style="flex:1;min-width:140px;text-align:center;"><div style="font-size:28px;">💪</div><div style="color:rgba(255,255,255,0.5);font-size:10px;letter-spacing:0.5px;">软硬度</div><div style="font-size:22px;font-weight:700;color:#64d2ff;">'+aiHard[1]+'<span style="font-size:14px;"> ~ '+aiHard[2]+'</span></div><div style="font-size:10px;color:rgba(255,255,255,0.3);">HF</div></div>';
+    h += '</div>';
+    
+    // Top 3 pillows as big cards
+    h += '<div style="display:flex;gap:10px;margin-bottom:12px;">';
+    for (var ti = 0; ti < Math.min(3, topPillows.length); ti++) {
+      var tp = topPillows[ti];
+      var medal = ['🥇','🥈','🥉'][ti];
+      var count = 0; for (var ri=0;ri<allRecords.length;ri++) if (allRecords[ri].pillow_id===tp.id) count++;
+      h += '<div class="card" style="flex:1;min-width:180px;">';
+      h += '<div style="font-size:32px;text-align:center;">'+medal+'</div>';
+      h += '<div style="text-align:center;font-weight:700;font-size:14px;color:#fff;">'+tp.id+'</div>';
+      h += '<div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.7);">'+tp.brand+'</div>';
+      h += '<div style="margin-top:6px;font-size:10px;color:rgba(255,255,255,0.5);text-align:center;">';
+      h += tp.material + ' | ' + tp.headH + 'mm | ' + tp.neckH + 'mm | ' + tp.sideH + 'mm | ' + tp.hardness + 'HF';
+      h += '</div>';
+      h += '<div style="margin-top:4px;font-size:11px;color:rgba(255,255,255,0.6);text-align:center;">测试'+count+'次</div>';
+      h += '</div>';
+    }
+    h += '</div>';
+    
+    document.getElementById('recommendedParams').innerHTML = h;
     document.getElementById('result').style.display = 'block';
-    document.getElementById('resultSummary').textContent = '基于 ' + allRecords.length + ' 条数据 | DeepSeek AI';
+    document.getElementById('resultSummary').textContent = '基于 ' + allRecords.length + ' 条数据 | DeepSeek AI 综合分析';
     
     // Populate tables with AI-detected pillows
     var pillowIds = reply.match(/p\d{3}/g) || [];
