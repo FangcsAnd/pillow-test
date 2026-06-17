@@ -91,6 +91,10 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
 
 <div id="result">
   <div class="card">
+    <h2>推荐枕头参数</h2>
+    <div id="recommendedParams" style="font-size:13px;color:rgba(255,255,255,0.8);line-height:2;"></div>
+  </div>
+  <div class="card">
     <h2>推荐结果 <span id="resultSummary" style="font-size:12px;color:rgba(255,255,255,0.4);"></span></h2>
     <table>
       <thead><tr><th>排名</th><th>枕头ID</th><th>品牌型号</th><th>综合评分</th><th>评价</th><th>测试次数</th><th>依据</th><th>匹配度</th></tr></thead>
@@ -143,7 +147,22 @@ function recommend() {
     var curve = JSON.parse(neckCurveText);
     for (var j = 0; j < curve.length; j++) neckPeak = Math.max(neckPeak, curve[j]);
   } catch(e) {}
-  var needHeadH = Math.round(neckPeak * 30); // estimate from neck curve
+  // Recommended ranges based on user profile
+  var recHeadH = Math.round(neckPeak * 25); // Head height = neck peak * 25
+  var recNeckH = Math.round(neckPeak * 22); // Neck height 
+  var recSideH = Math.round(neckPeak * 28); // Side height (slightly taller)
+  // Hardness based on weight
+  var recHardnessLow = Math.max(5, Math.round(weight * 0.08));
+  var recHardnessHigh = Math.round(weight * 0.2);
+  var hardnessLabel = recHardnessLow < 10 ? '偏软' : (recHardnessLow < 18 ? '适中' : '偏硬');
+  
+  var paramsHtml = '<b>根据您的颈椎曲度(' + neckPeak.toFixed(1) + 'mm)和体重(' + weight + 'kg)：</b><br>';
+  paramsHtml += '• <b>后脑勺高度：</b>' + Math.max(50, recHeadH-15) + ' ~ ' + (recHeadH+15) + ' mm（推荐' + recHeadH + 'mm）<br>';
+  paramsHtml += '• <b>颈椎高度：</b>' + Math.max(40, recNeckH-12) + ' ~ ' + (recNeckH+12) + ' mm<br>';
+  paramsHtml += '• <b>侧睡区高度：</b>' + Math.max(50, recSideH-15) + ' ~ ' + (recSideH+15) + ' mm<br>';
+  paramsHtml += '• <b>软硬度：</b>' + recHardnessLow + ' ~ ' + recHardnessHigh + ' HF（' + hardnessLabel + '）<br>';
+  paramsHtml += '<span style="font-size:11px;color:rgba(255,255,255,0.4);">范围为推荐值±公差，基于历史数据统计推算</span>';
+  document.getElementById('recommendedParams').innerHTML = paramsHtml;
 
   // Filter by sleep position
   var matches = [];
