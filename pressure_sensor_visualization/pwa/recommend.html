@@ -148,8 +148,9 @@ function recommend() {
     for (var j = 0; j < curve.length; j++) neckPeak = Math.max(neckPeak, curve[j]);
   } catch(e) {}
   // Recommended ranges based on user profile
-  var recHeadH = Math.round(neckPeak * 25); // Head height = neck peak * 25
-  var recNeckH = Math.round(neckPeak * 22); // Neck height 
+  var recHeadH = Math.round(neckPeak * 25);
+  var needHeadH = recHeadH;
+  var recNeckH = Math.round(neckPeak * 22); 
   var recSideH = Math.round(neckPeak * 28); // Side height (slightly taller)
   // Hardness based on weight
   var recHardnessLow = Math.max(5, Math.round(weight * 0.08));
