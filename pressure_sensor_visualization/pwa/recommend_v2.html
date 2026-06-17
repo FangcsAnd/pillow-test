@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>枕头推荐系统 V2 - ML模型</title>
+<style>
+:root { --bg:#1c1c2e; --card:rgba(255,255,255,0.1); --accent:#64d2ff; --text:#e8e8ed; --border:rgba(255,255,255,0.12); --success:#30d158; --danger:#ff453a; --radius:12px; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font:13px "PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(180deg,#1a1a3e 0%,#2d1b4e 40%,#1c3a5c 70%,#15202d 100%); color:var(--text); min-height:100vh; padding:20px; }
+h1 { color:#ffeaa7; margin-bottom:8px; }
+h2 { color:rgba(255,255,255,0.55); font-size:12px; letter-spacing:.5px; text-transform:uppercase; margin:12px 0 8px; font-weight:600; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-bottom:12px; backdrop-filter:blur(20px); max-width:800px; margin:0 auto 12px; }
+.row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.row label { color:rgba(255,255,255,0.5); font-size:12px; min-width:80px; text-align:right; flex-shrink:0; }
+input, select, textarea { font:13px "PingFang SC"; padding:7px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.08); color:#fff; outline:none; }
+input:focus, select:focus, textarea:focus { border-color:rgba(100,210,255,0.5); box-shadow:0 0 0 3px rgba(100,210,255,0.1); }
+textarea { width:100%; height:60px; font-size:11px; }
+button { font:13px "PingFang SC"; font-weight:600; border:none; border-radius:10px; padding:8px 20px; cursor:pointer; color:#fff; background:#536dfe; }
+button:hover { filter:brightness(1.1); }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+th { padding:6px 8px; text-align:left; font-size:10px; color:rgba(255,255,255,0.45); border-bottom:1px solid rgba(255,255,255,0.1); }
+td { padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.05); }
+.best td { background:rgba(48,209,88,0.1); }
+.param-card { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px; }
+.param-val { font-size:18px; font-weight:700; color:var(--accent); }
+.param-label { font-size:9px; color:rgba(255,255,255,0.35); }
+.row input { flex:1; }
+</style>
+</head>
+<body>
+<h1>枕头推荐系统 V2</h1>
+<div style="font-size:10px;color:rgba(255,255,255,0.3);margin-bottom:12px;">基于岭回归ML模型 | 双引擎融合(数据模型30%+人体工学70%)</div>
+
+<div class="card">
+  <h2>输入用户数据</h2>
+  <div class="row"><label>身高(cm):</label><input id="height" value="175"><label>体重(kg):</label><input id="weight" value="70"></div>
+  <div class="row"><label>肩宽(cm):</label><input id="shoulder" value="17"><label>性别:</label><select id="gender"><option>男</option><option>女</option></select></div>
+  <div class="row"><label>颈椎曲度:</label></div>
+  <textarea id="neckCurve" placeholder="粘贴21维颈椎曲度数组，如 [0,0,0,0,0.8,1,2.7,3.3,3.5,3.4,2.3,1.4,1.4,1.1,0.3,0.1,0,0,0,0,0]">[0,0,0,0,0.8,1,2.7,3.3,3.5,3.4,2.3,1.4,1.4,1.1,0.3,0.1,0,0,0,0,0]</textarea>
+  <button onclick="runV2()" style="margin-top:8px;">ML 分析推荐</button>
+</div>
+
+<div id="result" style="display:none;">
+  <div class="card">
+    <h2>推荐参数 (双引擎融合)</h2>
+    <div class="param-card" id="paramCards"></div>
+  </div>
+  <div class="card">
+    <h2>最佳匹配枕头</h2>
+    <table><thead><tr><th>排名</th><th>ID</th><th>品牌</th><th>材质</th><th>头高mm</th><th>颈高mm</th><th>侧高mm</th><th>硬度</th><th>预测分</th></tr></thead>
+    <tbody id="rankBody"></tbody></table>
+  </div>
+</div>
+
+<script>
+// Pre-trained model parameters (from Python V2)
+var PARAM_MODEL = {
+  head_h: {beta:[111.8033,-29.8232,-12.9790,12.4045,1.7173,-11.3916,1.7173,-4.3036,12.3682,1.5679,9.1483,-2.8334,2.1337,3.3464]},
+  neck_h: {beta:[113.4426,-15.0476,-6.6559,6.3113,0.9959,-5.5096,0.9959,-2.0117,6.7428,0.4361,4.4078,-1.1825,1.4954,1.5254]},
+  side_h: {beta:[111.8033,-29.8232,-12.9790,12.4045,1.7173,-11.3916,1.7173,-4.3036,12.3682,1.5679,9.1483,-2.8334,2.1337,3.3464]},
+  hardness: {beta:[17.7049,4.6598,1.8889,-1.8700,-0.1005,2.0888,-0.1005,0.8796,-1.2809,-0.7054,-1.6993,0.7633,0.2099,-0.7344]},
+  X_mean:[170.8333,61.9167,15.9500,1.0286,3.1000,21.6000,1.1788,8.3333,7.0000,0.8667,2.1452,0.0738,0.6667],
+  X_std:[6.3355,10.1834,1.5861,0.2836,0.7616,5.9554,0.2933,1.2472,1.1547,0.3273,0.5964,0.0735,0.4714]
+};
+var COMFORT_MODEL = {
+  beta:[2.0242,1.2122,0.3982,-1.0795,-0.2005,0.8351,-0.2005,0.2297,-0.5969,-0.5990,-0.6900,0.0591,0.1524,-0.7068,-2.4329,2.4721,-0.1867,0.4778,-0.4431],
+  X_mean:[169.8049,58.1707,15.5220,1.1230,3.2073,23.5829,1.2318,8.6829,7.2195,0.8923,2.3679,0.1087,0.6098,101.6220,105.5488,110.7439,11.6341,17.0488],
+  X_std:[7.2321,11.0125,1.4910,0.2770,0.6564,5.8167,0.2620,1.2185,1.2975,0.3070,0.5696,0.0762,0.4878,41.9290,27.4844,37.1985,7.5555,9.4983]
+};
+
+var PILLOWS = [];
+
+function loadPillowsV2(cb) {
+  fetch('data/pillows.json').then(function(r){return r.json();}).then(function(data){
+    PILLOWS = data.filter(function(p){return (p.material||'').indexOf('记忆棉')!==-1;});
+    if (cb) cb();
+  });
+}
+
+function extractNeckFeatures(curve) {
+  var maxVal = 0;
+  for (var i=0;i<curve.length;i++){if(curve[i]>maxVal)maxVal=curve[i];}
+  var sum=0;for(var i=0;i<curve.length;i++)sum+=curve[i];
+  var mean=sum/curve.length,area=sum;
+  var s=0;for(var i=0;i<curve.length;i++)s+=Math.pow(curve[i]-mean,2);
+  var std=Math.sqrt(s/curve.length);
+  var peak=0;for(var i=0;i<curve.length;i++){if(curve[i]===maxVal){peak=i;break;}}
+  var w=0;for(var i=0;i<curve.length;i++){if(curve[i]>0.5*maxVal)w++;}
+  var f=0,fs=0;for(var i=0;i<7;i++){f+=curve[i];fs++;}
+  var m=0,ms=0;for(var i=7;i<14;i++){m+=curve[i];ms++;}
+  var b=0,bs=0;for(var i=14;i<curve.length;i++){b+=curve[i];bs++;}
+  return {mean:mean,max:maxVal,area:area,std:std,peak:peak,width:w,front:f/fs,mid:m/ms,back:b/bs};
+}
+
+function predictParams(height,weight,shoulder,neckCurve,gender) {
+  var nf=extractNeckFeatures(neckCurve);
+  var features=[height,weight,shoulder,nf.mean,nf.max,nf.area,nf.std,nf.peak,nf.width,nf.front,nf.mid,nf.back,gender==='男'?1:0];
+  var Xm=PARAM_MODEL.X_mean,Xs=PARAM_MODEL.X_std;
+  var fn=[1.0];
+  for(var i=0;i<features.length;i++) fn.push((features[i]-Xm[i])/Xs[i]);
+  var r={};
+  for(var k in PARAM_MODEL){
+    if(k==='X_mean'||k==='X_std')continue;
+    var b=PARAM_MODEL[k].beta,sum=0;
+    for(var i=0;i<fn.length;i++) sum+=fn[i]*b[i];
+    r[k]=Math.max(0,sum);
+  }
+  return r;
+}
+
+function predictComfort(height,weight,shoulder,neckCurve,gender,pillow) {
+  var nf=extractNeckFeatures(neckCurve);
+  var hh=parseFloat(pillow.head_height||0),nh=parseFloat(pillow.neck_height||0);
+  var sh=parseFloat(pillow.side_height||0),ch=parseFloat(pillow.center_hardness||0),nhard=parseFloat(pillow.neck_hardness||0);
+  var f=[height,weight,shoulder,nf.mean,nf.max,nf.area,nf.std,nf.peak,nf.width,nf.front,nf.mid,nf.back,gender==='男'?1:0,hh,nh,sh,ch,nhard];
+  var Xm=COMFORT_MODEL.X_mean,Xs=COMFORT_MODEL.X_std,beta=COMFORT_MODEL.beta;
+  var sum=0;
+  for(var i=0;i<f.length;i++) sum+=beta[i+1]*(f[i]-Xm[i])/Xs[i];
+  return beta[0]+sum;
+}
+
+function runV2() {
+  if (!PILLOWS.length) { alert('枕头数据加载中，请稍候再试'); return; }
+  var h=parseFloat(document.getElementById('height').value)||175;
+  var w=parseFloat(document.getElementById('weight').value)||70;
+  var s=parseFloat(document.getElementById('shoulder').value)||17;
+  var g=document.getElementById('gender').value;
+  var nc=document.getElementById('neckCurve').value;
+  try { var curve=JSON.parse(nc); } catch(e) { alert('颈椎曲度格式错误'); return; }
+  
+  var params=predictParams(h,w,s,curve,g);
+  
+  var scored=[];
+  for(var i=0;i<PILLOWS.length;i++){
+    scored.push({score:predictComfort(h,w,s,curve,g,PILLOWS[i]), pillow:PILLOWS[i]});
+  }
+  scored.sort(function(a,b){return b.score-a.score;});
+  
+  // Display
+  var rp=params;
+  var pc='<div class="card" style="padding:10px;"><div class="param-label">后脑勺高度</div><div class="param-val">'+Math.round(rp.head_h)+'<span style="font-size:10px;color:rgba(255,255,255,0.3);"> mm</span></div></div>';
+  pc+='<div class="card" style="padding:10px;"><div class="param-label">颈椎高度</div><div class="param-val">'+Math.round(rp.neck_h)+'<span style="font-size:10px;color:rgba(255,255,255,0.3);"> mm</span></div></div>';
+  pc+='<div class="card" style="padding:10px;"><div class="param-label">侧睡区高度</div><div class="param-val">'+Math.round(rp.side_h)+'<span style="font-size:10px;color:rgba(255,255,255,0.3);"> mm</span></div></div>';
+  pc+='<div class="card" style="padding:10px;"><div class="param-label">软硬度</div><div class="param-val">'+rp.hardness.toFixed(1)+'<span style="font-size:10px;color:rgba(255,255,255,0.3);"> HF</span></div></div>';
+  document.getElementById('paramCards').innerHTML=pc;
+  
+  var rh='';
+  for(var i=0;i<Math.min(8,scored.length);i++){
+    var t=scored[i],p=t.pillow,cls=i===0?'best':'';
+    rh+='<tr class="'+cls+'"><td>'+(i+1)+(i===0?' ★':'')+'</td><td>'+p.id+'</td><td>'+p.brand+'</td><td>'+p.material+'</td>';
+    rh+='<td>'+p.head_height+'</td><td>'+p.neck_height+'</td><td>'+p.side_height+'</td><td>'+p.center_hardness+'</td>';
+    rh+='<td style="font-weight:700;color:'+(i===0?'var(--success)':'var(--text)')+'">'+t.score.toFixed(2)+'</td></tr>';
+  }
+  document.getElementById('rankBody').innerHTML=rh;
+  document.getElementById('result').style.display='block';
+}
+
+loadPillowsV2();
+</script>
+</body>
+</html>
