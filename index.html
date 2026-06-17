@@ -897,6 +897,21 @@ function addUser() {
   refreshUserDropdown();
   showUserForm(userData.length - 1);
 }
+
+function showAllPillows() {
+  var html = '<div style="margin-bottom:8px;"><button class="btn-sm" onclick="addPillow()" style="background:var(--accent);color:#000;">新增枕头</button></div>';
+  html += '<table><tr><th>ID</th><th>品牌</th><th>材质</th><th>尺寸</th><th>后脑勺高</th><th>颈高</th><th>侧高</th><th>中心硬度</th><th>颈硬度</th><th>操作</th></tr>';
+  for (var i = 0; i < pillowData.length; i++) {
+    var p = pillowData[i];
+    html += '<tr><td>' + p.id + '</td><td>' + p.brand + '</td><td>' + p.material + '</td><td>' + p.size + '</td><td>' + p.head_height + '</td><td>' + p.neck_height + '</td><td>' + p.side_height + '</td><td>' + (p.center_hardness||'') + '</td><td>' + (p.neck_hardness||'') + '</td>';
+    html += '<td><button class="btn-sm" onclick="editPillow(' + i + ')" style="background:rgba(255,255,255,0.1);margin-right:4px;">编辑</button><button class="btn-sm" onclick="deletePillow(' + i + ')" style="background:var(--danger);">删除</button></td></tr>';
+  }
+  html += '</table>';
+  document.getElementById('modalTitle').textContent = '枕头信息管理 (' + pillowData.length + '款)';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
 function addPillow() {
   var maxNum = 0;
   for (var i = 0; i < pillowData.length; i++) {
