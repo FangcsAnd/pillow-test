@@ -416,6 +416,14 @@ async function deepseekRecommend() {
   if (!allRecords.length) { alert('请先加载数据'); return; }
   var apiKey = localStorage.getItem('deepseek_key');
   if (!apiKey) {
+    try {
+      var cr = await fetch('deepseek_config.json');
+      var cd = await cr.json();
+      apiKey = cd.deepseek_key;
+      if (apiKey) localStorage.setItem('deepseek_key', apiKey);
+    } catch(e) {}
+  }
+  if (!apiKey) {
     apiKey = prompt('请输入 DeepSeek API Key（在 platform.deepseek.com 获取）：');
     if (!apiKey) return;
     localStorage.setItem('deepseek_key', apiKey);
