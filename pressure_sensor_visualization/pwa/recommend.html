@@ -401,6 +401,79 @@ function recommend() {
 // Auto-load on open
 loadData();
 
+function runLocalRecommend() {
+  // Fallback local analysis when AI is unavailable
+  var height = parseFloat(document.getElementById('height').value) || 170;
+  var weight = parseFloat(document.getElementById('weight').value) || 65;
+  var shoulder = parseFloat(document.getElementById('shoulder').value) || 16;
+  var sleepPos = document.getElementById('sleepPos').value;
+  var neckCurveText = document.getElementById('neckCurveText').value;
+  var neckPeak = 3;
+  try { var c=JSON.parse(neckCurveText); for(var j=0;j<c.length;j++) neckPeak=Math.max(neckPeak,c[j]); } catch(e){}
+  
+  var matches = [];
+  for (var i=0;i<allRecords.length;i++) if (allRecords[i].sleep_pos===sleepPos) matches.push(allRecords[i]);
+  if (matches.length<3) matches=allRecords;
+  
+  var recHeadH=Math.round(neckPeak*28), recNeckH=Math.round(neckPeak*24), recSideH=Math.round(neckPeak*30);
+  
+  // Build parameter cards
+  var h='<div style="color:rgba(255,255,255,0.5);font-size:11px;margin-bottom:8px;">📊 本地数据分析（DeepSeek 繁忙时自动切换）</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">';
+  h += '<div class="card" style="padding:10px;"><div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;">后脑勺高度</div><div style="font-size:16px;font-weight:700;color:#64d2ff;">'+Math.max(60,recHeadH-15)+' ~ '+(recHeadH+15)+'<span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.25);"> mm</span></div></div>';
+  h += '<div class="card" style="padding:10px;"><div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;">颈椎高度</div><div style="font-size:16px;font-weight:700;color:#64d2ff;">'+Math.max(50,recNeckH-12)+' ~ '+(recNeckH+12)+'<span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.25);"> mm</span></div></div>';
+  h += '<div class="card" style="padding:10px;"><div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;">侧睡区高度</div><div style="font-size:16px;font-weight:700;color:#64d2ff;">'+Math.max(60,recSideH-15)+' ~ '+(recSideH+15)+'<span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.25);"> mm</span></div></div>';
+  var rHardL=Math.max(5,Math.round(weight*0.1)), rHardH=Math.round(weight*0.2);
+  h += '<div class="card" style="padding:10px;"><div style="font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;">软硬度</div><div style="font-size:16px;font-weight:700;color:#64d2ff;">'+rHardL+' ~ '+rHardH+'<span style="font-size:10px;font-weight:400;color:rgba(255,255,255,0.25);"> HF</span></div></div>';
+  h += '</div>';
+  
+  // Rank pillows by score
+  var scores={};
+  for (var i=0;i<matches.length;i++){
+    var r=matches[i], pid=r.pillow_id||'?', c=r.comfort||{};
+    if (!scores[pid]) scores[pid]={total:0,count:0,users:{}};
+    scores[pid].total+=convertOldScore(c.comfort_overall)*0.45+convertOldScore(c.comfort_supine)*0.25+convertOldScore(c.comfort_side)*0.25;
+    scores[pid].count++; scores[pid].users[r.user_id]=1;
+  }
+  var ranked=[];
+  for (var k in scores) {
+    var s=scores[k], info=pillowInfo[k]||{};
+    ranked.push({id:k,brand:info.brand||'',material:info.material||'',headH:info.head_height||'',neckH:info.neck_height||'',sideH:info.side_height||'',hardness:info.center_hardness||'',score:s.total/s.count,count:s.count,users:Object.keys(s.users).length});
+  }
+  ranked.sort(function(a,b){return b.score-a.score;});
+  
+  if (ranked.length>0) {
+    h += '<div style="display:flex;gap:8px;">';
+    for (var ti=0;ti<Math.min(3,ranked.length);ti++){
+      var t=ranked[ti], medal=['🥇','🥈','🥉'][ti];
+      h += '<div class="card" style="flex:1;min-width:160px;text-align:center;padding:12px;">';
+      h += '<div style="font-size:24px;">'+medal+'</div>';
+      h += '<div style="font-weight:700;font-size:13px;color:#fff;">'+t.id+' <span style="color:rgba(255,255,255,0.6);font-size:11px;">'+t.brand+'</span></div>';
+      h += '<div style="margin-top:4px;font-size:10px;color:rgba(255,255,255,0.4);">'+t.material+' | 后'+t.headH+' 颈'+t.neckH+' 侧'+t.sideH+'mm | 硬度'+t.hardness+'HF</div>';
+      h += '<div style="margin-top:4px;font-size:10px;color:rgba(255,255,255,0.5);">综合 '+t.score.toFixed(1)+' · '+t.count+'次 · '+t.users+'人</div>';
+      h += '</div>';
+    }
+    h += '</div>';
+  }
+  
+  document.getElementById('recommendedParams').innerHTML = h;
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('resultSummary').textContent = '基于 '+allRecords.length+' 条数据 | 本地分析（颈曲峰值'+neckPeak.toFixed(1)+'mm）';
+  
+  // Populate tables
+  var rhtml='', ahtml='', phtml='';
+  for (var i=0;i<Math.min(5,ranked.length);i++){
+    var t=ranked[i];
+    rhtml+='<tr><td>'+(i+1)+'</td><td><b>'+t.id+'</b></td><td>'+t.brand+'</td><td>'+t.score.toFixed(1)+'</td><td>'+t.count+'次('+t.users+'人)</td><td>'+t.material+'</td></tr>';
+    ahtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td><td>'+t.users+'人/'+t.count+'次</td><td>'+t.neckH+'</td><td>'+t.hardness+'</td><td>'+t.material+'</td></tr>';
+    phtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td><td>'+t.headH+' mm</td><td>'+t.neckH+' mm</td><td>'+t.sideH+' mm</td><td>'+t.hardness+' HF</td><td>本地分析</td></tr>';
+  }
+  document.getElementById('resultBody').innerHTML=rhtml;
+  document.getElementById('analysisBody').innerHTML=ahtml;
+  document.getElementById('paramCompareBody').innerHTML=phtml;
+  document.getElementById('matchDetail').innerHTML='<span style="color:rgba(255,255,255,0.5);">以上为本地统计数据分析结果（DeepSeek 繁忙时自动切换）</span>';
+}
+
 async function deepseekRecommend() {
   if (!allRecords.length) { alert('请先加载数据'); return; }
   var apiKey = localStorage.getItem('deepseek_key');
@@ -468,6 +541,22 @@ async function deepseekRecommend() {
     var data = await resp.json();
     if (data.error) { throw new Error(data.error.message); }
     var reply = data.choices[0].message.content;
+  } catch(e) {
+    var errMsg = e.message || '';
+    if (errMsg.indexOf('busy')!==-1 || errMsg.indexOf('rate')!==-1 || errMsg.indexOf('503')!==-1) {
+      document.getElementById('recommendedParams').innerHTML = '<div style="color:#fdcb6e;font-size:12px;">⚠️ DeepSeek 繁忙，已切换本地分析...</div>';
+      setTimeout(function(){ runLocalRecommend(); }, 500);
+      return;
+    }
+    if (errMsg.indexOf('401')!==-1 || errMsg.indexOf('auth')!==-1 || errMsg.indexOf('key')!==-1) {
+      localStorage.removeItem('deepseek_key');
+      alert('API Key 无效，请重新输入');
+    } else if (errMsg.indexOf('busy')===-1) {
+      document.getElementById('recommendedParams').innerHTML = '<div style="color:#fdcb6e;font-size:12px;">⚠️ AI 请求失败('+errMsg+')，已切换本地分析...</div>';
+      setTimeout(function(){ runLocalRecommend(); }, 500);
+    }
+    return;
+  }
     
     // Parse AI response
     var aiHeadH = reply.match(/后脑勺高度[：:]\s*(\d+)\s*~\s*(\d+)/);
