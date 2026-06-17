@@ -909,6 +909,16 @@ function showCrossMatrix() {
     }
     html+='</table></div>';
     html+='<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:8px;">✓=已测试 ✗=未测试 | 总计缺'+totalMissing+'项交叉测试</div>';
+    html+='<div style="margin-top:8px;font-size:11px;max-height:200px;overflow-y:auto;">';
+    html+='<b style="color:rgba(255,255,255,0.6);">未测试组合 ('+totalMissing+'项)：</b><br>';
+    for(var ui=0;ui<users.length;ui++){
+      var u2=users[ui];var missing=[];
+      for(var pi=0;pi<pillows.length;pi++){
+        if(!tested[u2.user_id+'_'+pillows[pi].pillow_id]) missing.push(pillows[pi].pillow_id);
+      }
+      if(missing.length>0) html+='<span style="color:#ff453a;">'+u2.user_id+' '+u2.name+'</span> ← <span style="color:rgba(255,255,255,0.4);">'+missing.join(', ')+'</span><br>';
+    }
+    html+='</div>';
     
     document.getElementById('modalTitle').textContent='用户×枕头 交叉测试矩阵 ('+users.length+'人×'+pillows.length+'款)';
     document.getElementById('modalContent').innerHTML=html;
