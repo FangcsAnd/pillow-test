@@ -170,7 +170,7 @@ function recommend() {
   // Filter by sleep position
   var matches = [];
   for (var i = 0; i < allRecords.length; i++) {
-    if (allRecords[i].sleep_pos === sleepPos) matches.push(allRecords[i]);
+    if (allRecords[i].sleep_pos === sleepPos && pillowInfo[allRecords[i].pillow_id]) matches.push(allRecords[i]);
   }
   if (matches.length < 3) matches = allRecords;
 
