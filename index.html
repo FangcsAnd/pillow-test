@@ -920,38 +920,23 @@ function showCrossMatrix() {
       tested[(r.user_id||'')+'_'+(r.pillow_id||'')]=1;
     }
     
-    var html='<div style="overflow-x:auto;font-size:10px;">';
-    html+='<table style="border-collapse:collapse;">';
-    html+='<tr><th style="position:sticky;left:0;background:rgba(28,28,46,0.95);">用户↓/枕头→</th>';
-    for(var pi=0;pi<pillows.length;pi++) html+='<th style="writing-mode:vertical-rl;min-width:20px;padding:4px 2px;">'+pillows[pi].pillow_id+'</th>';
-    html+='<th>已测</th><th>未测</th><th>覆盖率</th></tr>';
-    
+    var html='<div style="overflow-x:auto;font-size:11px;">';
+    html+='<table><tr><th>用户</th><th>枕头</th><th>状态</th></tr>';
     var totalMissing=0;
     for(var ui=0;ui<users.length;ui++){
       var u=users[ui];
-      html+='<tr><td style="position:sticky;left:0;background:rgba(28,28,46,0.95);">'+u.user_id+' '+u.name+'</td>';
-      var done=0;
       for(var pi=0;pi<pillows.length;pi++){
-        var tested2=tested[u.user_id+'_'+pillows[pi].pillow_id];
-        html+='<td style="text-align:center;'+(tested2?'background:rgba(48,209,88,0.2);color:#30d158;':'color:rgba(255,69,58,0.5);')+'">'+(tested2?'✓':'✗')+'</td>';
-        if(tested2) done++;
+        var p=pillows[pi];
+        var isTested=tested[u.user_id+'_'+p.pillow_id];
+        if(!isTested) totalMissing++;
+        html+='<tr style="'+(isTested?'':'background:rgba(255,69,58,0.06);')+'">';
+        html+='<td>'+u.user_id+' '+u.name+'</td>';
+        html+='<td>'+p.pillow_id+' '+p.pillow_brand+'</td>';
+        html+='<td style="color:'+(isTested?'#30d158':'#ff453a')+'">'+(isTested?'✓ 已测试':'✗ 未测试')+'</td></tr>';
       }
-      var missing=pillows.length-done;
-      totalMissing+=missing;
-      html+='<td style="color:#30d158;">'+done+'</td><td style="color:#ff453a;">'+missing+'</td><td>'+(pillows.length>0?Math.round(done/pillows.length*100):0)+'%</td></tr>';
     }
     html+='</table></div>';
-    html+='<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:8px;">✓=已测试 ✗=未测试 | 总计缺'+totalMissing+'项交叉测试</div>';
-    html+='<div style="margin-top:8px;font-size:11px;max-height:200px;overflow-y:auto;">';
-    html+='<b style="color:rgba(255,255,255,0.6);">未测试组合 ('+totalMissing+'项)：</b><br>';
-    for(var ui=0;ui<users.length;ui++){
-      var u2=users[ui];var missing=[];
-      for(var pi=0;pi<pillows.length;pi++){
-        if(!tested[u2.user_id+'_'+pillows[pi].pillow_id]) missing.push(pillows[pi].pillow_id);
-      }
-      if(missing.length>0) html+='<span style="color:#ff453a;">'+u2.user_id+' '+u2.name+'</span> ← <span style="color:rgba(255,255,255,0.4);">'+missing.join(', ')+'</span><br>';
-    }
-    html+='</div>';
+    html+='<div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:8px;">共 '+users.length+' 人 × '+pillows.length+' 款 = '+(users.length*pillows.length)+' 组合 | 已测'+(users.length*pillows.length-totalMissing)+' | 未测'+totalMissing+'</div>';
     
     document.getElementById('modalTitle').textContent='用户×枕头 交叉测试矩阵 ('+users.length+'人×'+pillows.length+'款)';
     document.getElementById('modalContent').innerHTML=html;
