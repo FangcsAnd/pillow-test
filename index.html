@@ -63,17 +63,13 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 #historyCards { display: flex; gap: 6px; overflow-x: auto; padding: 6px; flex-shrink: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); min-height: 82px; }
 .history-row { flex-shrink: 0; width: 100px; padding: 4px 6px; font-size: 9px; border-radius: 5px; cursor: pointer; color: #fff; display: flex; flex-direction: column; gap: 1px; }
 .history-row .hscore { font-size: 11px; font-weight: 700; }
-.history-row .hsub { font-size: 8px; opacity: 0.85; }
-.history-row.good { background: linear-gradient(135deg, #00b894, #00d2a4); }
-.history-row.ok { background: linear-gradient(135deg, #fdcb6e, #e17055); }
-.history-row.bad { background: linear-gradient(135deg, #d63031, #e17055); }
+.history-row.great { background: linear-gradient(135deg, #00e676, #00c853); }
+.history-row.good { background: linear-gradient(135deg, #64d2ff, #3a86ff); }
+.history-row.ok { background: linear-gradient(135deg, #fdcb6e, #f59b1e); }
+.history-row.poor { background: linear-gradient(135deg, #ff7675, #e17055); }
+.history-row.bad { background: linear-gradient(135deg, #d63031, #b71c1c); }
 .history-row:hover { opacity: 0.85; }
 .history-row.active { box-shadow: 0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,0.2); }
-.history-row .hscore { font-size: 24px; font-weight: 700; }
-.history-row .hsub { font-size: 10px; opacity: 0.9; }
-.history-row.good { background: linear-gradient(135deg, #00b894, #00d2a4); }
-.history-row.ok { background: linear-gradient(135deg, #fdcb6e, #e17055); }
-.history-row.bad { background: linear-gradient(135deg, #d63031, #e17055); }
 #historyCards::-webkit-scrollbar { height: 4px; }
 #historyCards::-webkit-scrollbar-track { background: var(--input); border-radius: 2px; }
 #historyCards::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -1134,8 +1130,9 @@ function refreshHistoryUI() {
     var r = records[idx];
     var c = r.comfort || {};
     var cl = computeComfortLabel(c);
-    var cls = cl.score >= 3.4 ? 'good' : (cl.score >= 2.6 ? 'ok' : 'bad');
-    var shortLabel = cl.score >= 4.2 ? '惊喜' : (cl.score >= 3.4 ? '不错' : (cl.score >= 2.6 ? '能接受' : (cl.score >= 1.8 ? '差' : '很差')));
+    var score = cl.score;
+    var cls = score >= 4.2 ? 'great' : (score >= 3.4 ? 'good' : (score >= 2.6 ? 'ok' : (score >= 1.8 ? 'poor' : 'bad')));
+    var shortLabel = score >= 4.2 ? '惊喜' : (score >= 3.4 ? '不错' : (score >= 2.6 ? '能接受' : (score >= 1.8 ? '差' : '很差')));
     html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
     html += '<div style="font-size:8px;opacity:0.7;">' + (r.time||'') + '</div>';
     html += '<div style="font-size:8px;opacity:0.8;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
