@@ -49,7 +49,7 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 .param-item .help { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); font-size: 10px; cursor: pointer; border: none; margin-right: 3px; flex-shrink: 0; line-height: 1; padding: 0; transition: all 0.2s; }
 .param-item .help:hover { background: var(--accent); color: #000; }
 /* Help popup */
-#helpPopup { display: none; position: fixed; z-index: 200; background: rgba(28,28,46,0.97); border: 1px solid rgba(100,210,255,0.3); border-radius: 10px; padding: 10px 14px; font-size: 12px; max-width: 220px; color: #fff; backdrop-filter: blur(20px); box-shadow: 0 8px 30px rgba(0,0,0,0.5); pointer-events: none; }
+#helpPopup { display: none; position: fixed; z-index: 200; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px 14px; font-size: 12px; max-width: 220px; color: #000; box-shadow: 0 4px 16px rgba(0,0,0,0.2); pointer-events: none; }
 /* Background */
 .moon-bg { position:fixed; top:20px; right:50px; width:60px; height:60px; border-radius:50%; background:radial-gradient(circle at 30% 30%,#ffeaa7,#fdcb6e); box-shadow:0 0 30px rgba(253,203,110,0.3); animation:moonB 4s ease-in-out infinite; z-index:0; pointer-events:none; }
 @keyframes moonB { 0%,100%{box-shadow:0 0 30px rgba(253,203,110,0.3)} 50%{box-shadow:0 0 50px rgba(253,203,110,0.5)} }
@@ -74,7 +74,6 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 #historyCards::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 #heatmapWrap { flex: 1; display: flex; align-items: center; justify-content: center; }
 #heatmap { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
-#helpPopup { display: none; position: absolute; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 12px; max-width: 200px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; color: var(--text); }
 .modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; }
 .modal-overlay.show { display:flex; }
 .modal-box { background:rgba(44,44,58,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:20px; max-width:750px; max-height:80vh; overflow-y:auto; width:90%; backdrop-filter:blur(20px); }
