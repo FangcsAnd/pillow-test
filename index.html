@@ -61,7 +61,12 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 .status.connected { color: var(--success); }
 .comfort-val { font-size: 10px; color: var(--accent); font-weight: 700; min-width: 16px; text-align: center; }
 #historyCards { display: flex; gap: 6px; overflow-x: auto; padding: 6px; flex-shrink: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); min-height: 82px; }
-.history-row { flex-shrink: 0; width: 140px; padding: 8px 10px; font-size: 11px; border-radius: 6px; cursor: pointer; color: #fff; display: flex; flex-direction: column; gap: 2px; }
+.history-row { flex-shrink: 0; width: 115px; padding: 5px 7px; font-size: 10px; border-radius: 6px; cursor: pointer; color: #fff; display: flex; flex-direction: column; gap: 1px; }
+.history-row .hscore { font-size: 13px; font-weight: 700; }
+.history-row .hsub { font-size: 9px; opacity: 0.85; }
+.history-row.good { background: linear-gradient(135deg, #00b894, #00d2a4); }
+.history-row.ok { background: linear-gradient(135deg, #fdcb6e, #e17055); }
+.history-row.bad { background: linear-gradient(135deg, #d63031, #e17055); }
 .history-row:hover { opacity: 0.85; }
 .history-row.active { box-shadow: 0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,0.2); }
 .history-row .hscore { font-size: 24px; font-weight: 700; }
@@ -1132,11 +1137,10 @@ function refreshHistoryUI() {
     var cls = cl.score >= 3.4 ? 'good' : (cl.score >= 2.6 ? 'ok' : 'bad');
     html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
     html += '<div style="font-size:9px;opacity:0.8;">' + (r.time||'') + '</div>';
-    html += '<div style="font-size:10px;font-weight:600;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
+    html += '<div style="font-size:9px;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
     html += '<div class="hscore">' + cl.label + '</div>';
-    html += '<div style="font-size:9px;">' + (r.pillow_id||'') + ' ' + (r.sleep_pos||'') + '</div>';
-    html += '<div class="hsub">仰' + convertOldScore(c.comfort_supine) + ' 侧' + convertOldScore(c.comfort_side) + ' 撑' + convertOldScore(c.comfort_neck) + '</div>';
-    html += '<div class="hsub">包' + convertOldScore(c.comfort_head) + ' 压' + convertOldScore(c.comfort_pressure) + ' 热' + convertOldScore(c.comfort_heat) + '</div>';
+    html += '<div style="font-size:9px;opacity:0.8;">' + (r.pillow_id||'') + ' ' + (r.pillow_brand||'') + '</div>';
+    html += '<div style="font-size:8px;opacity:0.7;">' + (r.sleep_pos||'') + '</div>';
     html += '</div>';
   }
   document.getElementById('historyCards').innerHTML = html;
