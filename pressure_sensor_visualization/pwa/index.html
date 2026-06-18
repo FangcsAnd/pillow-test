@@ -422,7 +422,7 @@ function drawDonutChart(headRatio, neckRatio, shoulderRatio) {
 
 function showParamHelp(key, btn) {
   var p = document.getElementById('helpPopup');
-  p.innerHTML = '<span style="color:#fff;font-size:12px;">' + key + '</span>';
+  p.innerHTML = '<span style="color:#000;font-size:12px;">' + key + '</span>';
   p.style.display = 'block';
   var r = btn.getBoundingClientRect();
   p.style.left = Math.min(r.right + 6, window.innerWidth - 230) + 'px';
