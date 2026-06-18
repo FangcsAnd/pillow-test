@@ -1134,11 +1134,11 @@ function refreshHistoryUI() {
     var cls = score >= 4.2 ? 'great' : (score >= 3.4 ? 'good' : (score >= 2.6 ? 'ok' : (score >= 1.8 ? 'poor' : 'bad')));
     var shortLabel = score >= 4.2 ? '惊喜' : (score >= 3.4 ? '不错' : (score >= 2.6 ? '能接受' : (score >= 1.8 ? '差' : '很差')));
     html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
-    html += '<div style="font-size:8px;opacity:0.7;">' + (r.time||'') + '</div>';
-    html += '<div style="font-size:8px;opacity:0.8;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
+    html += '<div style="font-size:8px;opacity:0.8;font-weight:600;">' + (r.time||'') + '</div>';
+    html += '<div style="font-size:9px;font-weight:700;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
     html += '<div class="hscore">' + shortLabel + '</div>';
-    html += '<div style="font-size:8px;opacity:0.7;">' + (r.pillow_id||'') + ' ' + (r.pillow_brand||'') + '</div>';
-    html += '<div style="font-size:7px;opacity:0.6;">' + (r.sleep_pos||'') + '</div>';
+    html += '<div style="font-size:8px;font-weight:600;">' + (r.pillow_id||'') + ' ' + (r.pillow_brand||'') + '</div>';
+    html += '<div style="font-size:8px;font-weight:600;">' + (r.sleep_pos||'') + '</div>';
     html += '</div>';
   }
   document.getElementById('historyCards').innerHTML = html;
