@@ -166,7 +166,7 @@ function runV3(){
     var mc=0;for(var j=0;j<4;j++)if(checks[j])mc++;
     scored.push({p:p,dist:dist,match:mc,checks:checks,dh:dh,dn:dn,ds:ds,dd:dd});
   }
-  scored.sort(function(a,b){return a.dist-b.dist;});
+  scored.sort(function(a,b){return b.match-a.match||a.dist-b.dist;});
   var mh='';
   for(var i=0;i<Math.min(6,scored.length);i++){
     var t=scored[i],p=t.p,pm=Math.round(Math.max(0,100-t.dist)),mpct=Math.round(t.match/4*100);
