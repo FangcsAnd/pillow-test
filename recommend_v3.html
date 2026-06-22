@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>枕头推荐 V3 - KNN算法</title>
+<style>
+:root { --bg:#1c1c2e; --card:rgba(255,255,255,0.1); --accent:#64d2ff; --border:rgba(255,255,255,0.12); --success:#30d158; --danger:#ff453a; --radius:12px; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font:13px "PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(180deg,#1a1a3e 0%,#2d1b4e 40%,#1c3a5c 70%,#15202d 100%); color:#e8e8ed; min-height:100vh; padding:20px; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:12px; max-width:850px; margin-left:auto; margin-right:auto; backdrop-filter:blur(20px); }
+.row { display:flex; gap:8px; margin-bottom:6px; align-items:center; }
+.row label { color:rgba(255,255,255,0.5); font-size:12px; min-width:80px; text-align:right; }
+input,select,textarea { font:13px "PingFang SC"; padding:7px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.08); color:#fff; outline:none; flex:1; }
+textarea { height:60px; font-size:11px; }
+button { font:13px "PingFang SC"; font-weight:600; border:none; border-radius:10px; padding:8px 20px; cursor:pointer; background:#536dfe; color:#fff; }
+button:hover { filter:brightness(1.1); }
+h2 { color:rgba(255,255,255,0.55); font-size:12px; letter-spacing:.5px; text-transform:uppercase; margin-bottom:8px; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+th { padding:6px 8px; text-align:left; font-size:10px; color:rgba(255,255,255,0.45); border-bottom:1px solid rgba(255,255,255,0.1); }
+td { padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.05); }
+.good { color:#30d158; } .bad { color:#ff453a; }
+.best td { background:rgba(48,209,88,0.08); }
+.param-card { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px; }
+.param-card .pv { font-size:18px; font-weight:700; color:var(--accent); }
+.param-card .pl { font-size:9px; color:rgba(255,255,255,0.35); }
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>V3 推荐算法 (KNN + Cosine + Softmax)</h2>
+  <div class="row"><label>身高(cm):</label><input id="height" value="175"><label>体重(kg):</label><input id="weight" value="70"></div>
+  <div class="row"><label>肩宽(cm):</label><input id="shoulder" value="16.5"><label>性别:</label><select id="gender"><option>男</option><option>女</option></select></div>
+  <div class="row"><label>年龄:</label><input id="age" value="28"><label>睡姿:</label><select id="sleepPos"><option>仰睡</option><option>侧睡</option></select></div>
+  <div class="row"><label>颈椎曲度:</label></div>
+  <textarea id="neckCurve">[0,0,0,0.2,0.8,1.5,2.2,2.8,3.2,3.4,3.0,2.5,1.8,1.0,0.5,0.1,0,0,0,0,0]</textarea>
+  <button onclick="runV3()" style="margin-top:8px;">V3 分析推荐</button>
+  <span id="info" style="font-size:10px;color:rgba(255,255,255,0.3);margin-left:8px;"></span>
+</div>
+<div id="result" style="display:none;">
+  <div class="card"><h2>推荐参数</h2><div class="param-card" id="params"></div></div>
+  <div class="card"><h2>匹配枕头</h2><table><thead><tr><th>排名</th><th>ID</th><th>品牌</th><th>材质</th><th>头高</th><th>颈高</th><th>侧高</th><th>硬度</th><th>匹配%</th><th>头</th><th>颈</th><th>侧</th><th>硬</th></tr></thead><tbody id="matchBody"></tbody></table></div>
+  <div class="card" id="simUsers" style="display:none;"><h2>相似用户 (KNN)</h2><div id="simList"></div></div>
+</div>
+
+<script>
+var users=[],pillows=[],records=[],userVecs=[],ideals={},Xmin,Xmax;
+var FEAT=['gender','age','height','weight','bmi','shoulder','nmax','npos','navg','nsum','nstd','nfront','nmid','nback','ndiff','nrise'];
+
+function toNum(v){return v===null||v===undefined||v===''?0:parseFloat(v);}
+
+function neckFeat(c){
+  var nx=0,np=0,s=0,fs=0,ms=0,bs=0,md=0,rs=0;
+  for(var i=0;i<c.length;i++){s+=c[i];if(c[i]>nx){nx=c[i];np=i;}}
+  var mn=s/c.length,ss=0;
+  for(var i=0;i<c.length;i++)ss+=Math.pow(c[i]-mn,2);
+  for(var i=0;i<7;i++)fs+=c[i];
+  for(var i=7;i<14;i++)ms+=c[i];
+  for(var i=14;i<c.length;i++)bs+=c[i];
+  for(var i=0;i<c.length-1;i++){var d=Math.abs(c[i]-c[i+1]);if(d>md)md=d;if(c[i+1]-c[i]>rs)rs=c[i+1]-c[i];}
+  return [nx,np,mn,s,Math.sqrt(ss/c.length),fs,ms,bs,md,rs];
+}
+
+function userVector(u){
+  var c=JSON.parse(u.neck_curve||'[]'),nf=neckFeat(c);
+  var bmi=toNum(u.weight)/Math.pow(toNum(u.height)/100,2);
+  return [(u.gender==='男'?1:0),toNum(u.age||25),toNum(u.height),toNum(u.weight),bmi,toNum(u.shoulder_width)].concat(nf);
+}
+
+function cosSim(a,b){var d=0,na=0,nb=0;for(var i=0;i<a.length;i++){d+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i];}return d/(Math.sqrt(na)*Math.sqrt(nb)+1e-8);}
+
+function softmax(a,T){var m=a[0],s=0,r=[];for(var i=1;i<a.length;i++)if(a[i]>m)m=a[i];for(var i=0;i<a.length;i++){var v=Math.exp((a[i]-m)/T);r.push(v);s+=v;}for(var i=0;i<r.length;i++)r[i]/=s;return r;}
+
+function weightedAvg(vals,ws){var s=0,tw=0;for(var i=0;i<vals.length;i++){tw+=ws[i];s+=vals[i]*ws[i];}return tw>0?s/tw:0;}
+
+function idealParams(uid){
+  var recs=[];
+  for(var i=0;i<records.length;i++){if(records[i].user_id===uid)recs.push(records[i]);}
+  if(!recs.length)return null;
+  var s=[],side=[];
+  for(var i=0;i<recs.length;i++){
+    var r=recs[i],c=r.comfort||{};
+    r._cs=toNum(c.comfort_overall)*0.45+toNum(c.comfort_supine)*0.25+toNum(c.comfort_side)*0.25+toNum(c.comfort_neck)*0.03+toNum(c.comfort_head)*0.02;
+    if(r.sleep_pos==='仰睡')s.push(r);
+    if(r.sleep_pos==='侧睡')side.push(r);
+  }
+  function wavg(rs,k){
+    var v=[],cs=[];
+    for(var i=0;i<rs.length;i++){var val=toNum(rs[i][k]);if(val>0){v.push(val);cs.push(rs[i]._cs);}}
+    if(!v.length)return 0;
+    var mn=cs[0];for(var i=1;i<cs.length;i++)if(cs[i]<mn)mn=cs[i];
+    var w=[],ws=0;for(var i=0;i<cs.length;i++){var wt=Math.exp((cs[i]-mn+1)/(mn+1||1));w.push(wt);ws+=wt;}
+    var sum=0;for(var i=0;i<v.length;i++)sum+=v[i]*w[i]/ws;
+    return sum;
+  }
+  return {h:wavg(s,'pillow_head_height'),n:wavg(s,'pillow_neck_height'),s:wavg(side,'pillow_side_height'),ch:wavg(recs,'pillow_center_hardness')};
+}
+
+function loadData(cb){
+  var loaded=0,total=3;
+  function done(){loaded++;if(loaded===total)cb();}
+  fetch('data/users.json').then(function(r){return r.json();}).then(function(d){users=d;done();});
+  fetch('data/pillows.json').then(function(r){return r.json();}).then(function(d){pillows=d;done();});
+  fetch('data/records.json').then(function(r){return r.json();}).then(function(d){records=d;done();});
+}
+
+function init(){
+  document.getElementById('info').textContent='初始化中...';
+  userVecs=[];for(var i=0;i<users.length;i++)userVecs.push(userVector(users[i]));
+  // minmax norm
+  Xmin=userVecs[0].slice();Xmax=userVecs[0].slice();
+  for(var i=1;i<userVecs.length;i++)for(var j=0;j<16;j++){
+    if(userVecs[i][j]<Xmin[j])Xmin[j]=userVecs[i][j];
+    if(userVecs[i][j]>Xmax[j])Xmax[j]=userVecs[i][j];
+  }
+  // ideal params
+  ideals={};
+  for(var i=0;i<users.length;i++){
+    var ip=idealParams(users[i].id);
+    if(ip&&(ip.h>0||ip.n>0||ip.s>0||ip.ch>0))ideals[users[i].id]=ip;
+  }
+  document.getElementById('info').textContent=Object.keys(ideals).length+'个可推荐用户 | '+pillows.length+'款记忆棉枕';
+}
+
+function normVec(v){var r=[];for(var j=0;j<16;j++)r.push(Xmax[j]>Xmin[j]?(v[j]-Xmin[j])/(Xmax[j]-Xmin[j]):0);return r;}
+
+function runV3(){
+  if(!users.length){alert('请等待数据加载');return;}
+  var h=toNum(document.getElementById('height').value||175),w=toNum(document.getElementById('weight').value||70);
+  var s=toNum(document.getElementById('shoulder').value||16.5),g=document.getElementById('gender').value;
+  var a=toNum(document.getElementById('age').value||28),nc=document.getElementById('neckCurve').value;
+  var u={gender:g,age:a,height:h,weight:w,shoulder_width:s,neck_curve:nc};
+  var uv=userVector(u),uvn=normVec(uv);
+  // Cosine with all ideal users
+  var sims=[];
+  for(var uid in ideals){
+    for(var i=0;i<users.length;i++){if(users[i].id===uid){sims.push({uid:uid,sim:cosSim(uvn,normVec(userVecs[i]))});break;}}
+  }
+  sims.sort(function(a,b){return b.sim-a.sim;});
+  var K=3,top=sims.slice(0,K),ts=[];for(var i=0;i<top.length;i++)ts.push(top[i].sim);
+  var wts=softmax(ts,0.15);
+  var hv=[],nv=[],sv=[],dv=[],ws=[];
+  for(var i=0;i<top.length;i++){
+    var ide=ideals[top[i].uid]||{};
+    if(ide.h>0){hv.push(ide.h);ws.push(wts[i]);}
+    if(ide.n>0){nv.push(ide.n);ws.push(wts[i]);}
+    if(ide.s>0){sv.push(ide.s);ws.push(wts[i]);}
+    if(ide.ch>0){dv.push(ide.ch);ws.push(wts[i]);}
+  }
+  var ph=Math.round(weightedAvg(hv,wts)),pn=Math.round(weightedAvg(nv,wts));
+  var ps=Math.round(weightedAvg(sv,wts)),pd=Math.round(weightedAvg(dv,wts));
+  // Display params
+  var pc='<div class="card" style="padding:10px;"><div class="pl">后脑勺高度</div><div class="pv">'+ph+'<span style="font-size:10px;color:rgba(255,255,255,0.3);"> mm</span></div></div>';
+  pc+='<div class="card" style="padding:10px;"><div class="pl">颈椎高度</div><div class="pv">'+pn+'<span style="font-size:10px;color:rgba(255,255,255,0.3);"> mm</span></div></div>';
+  pc+='<div class="card" style="padding:10px;"><div class="pl">侧睡区高度</div><div class="pv">'+ps+'<span style="font-size:10px;color:rgba(255,255,255,0.3);"> mm</span></div></div>';
+  pc+='<div class="card" style="padding:10px;"><div class="pl">软硬度</div><div class="pv">'+pd+'<span style="font-size:10px;color:rgba(255,255,255,0.3);"> HF</span></div></div>';
+  document.getElementById('params').innerHTML=pc;
+  // Match pillows
+  var mem=[];for(var i=0;i<pillows.length;i++){if((pillows[i].material||'').indexOf('记忆棉')!==-1)mem.push(pillows[i]);}
+  var tol={h:10,n:10,s:10,d:3},scored=[];
+  for(var i=0;i<mem.length;i++){
+    var p=mem[i],ph2=toNum(p.head_height),pn2=toNum(p.neck_height),ps2=toNum(p.side_height),pd2=toNum(p.center_hardness);
+    var dh=Math.abs(ph2-ph),dn=Math.abs(pn2-pn),ds=Math.abs(ps2-ps),dd=Math.abs(pd2-pd);
+    var dist=Math.sqrt(dh*dh+dn*dn+ds*ds+Math.pow(dd*3,2));
+    var checks=[dh<=tol.h,dn<=tol.n,ds<=tol.s,dd<=tol.d];
+    var mc=0;for(var j=0;j<4;j++)if(checks[j])mc++;
+    scored.push({p:p,dist:dist,match:mc,checks:checks,dh:dh,dn:dn,ds:ds,dd:dd});
+  }
+  scored.sort(function(a,b){return a.dist-b.dist;});
+  var mh='';
+  for(var i=0;i<Math.min(6,scored.length);i++){
+    var t=scored[i],p=t.p,pm=Math.round(Math.max(0,100-t.dist)),mpct=Math.round(t.match/4*100);
+    mh+='<tr class="'+(i===0?'best':'')+'"><td>'+(i+1)+(i===0?'🥇':'')+'</td><td>'+p.id+'</td><td>'+p.brand+'</td><td>'+p.material+'</td>';
+    mh+='<td>'+p.head_height+'</td><td>'+p.neck_height+'</td><td>'+p.side_height+'</td><td>'+p.center_hardness+'</td>';
+    mh+='<td style="color:'+(mpct>=75?'#30d158':mpct>=50?'#fdcb6e':'#ff453a')+'"><b>'+mpct+'%</b></td>';
+    mh+='<td class="'+(t.checks[0]?'good':'bad')+'">'+(t.checks[0]?'✓':'✗')+'</td>';
+    mh+='<td class="'+(t.checks[1]?'good':'bad')+'">'+(t.checks[1]?'✓':'✗')+'</td>';
+    mh+='<td class="'+(t.checks[2]?'good':'bad')+'">'+(t.checks[2]?'✓':'✗')+'</td>';
+    mh+='<td class="'+(t.checks[3]?'good':'bad')+'">'+(t.checks[3]?'✓':'✗')+'</td></tr>';
+  }
+  document.getElementById('matchBody').innerHTML=mh;
+  document.getElementById('result').style.display='block';
+  // Similar users
+  var sh='';
+  for(var i=0;i<top.length;i++){
+    var nm='';for(var j=0;j<users.length;j++){if(users[j].id===top[i].uid){nm=users[j].name;break;}}
+    sh += (i+1)+'. '+top[i].uid+' '+nm+' 相似度='+top[i].sim.toFixed(3)+' 权重='+wts[i].toFixed(3)+'<br>';
+  }
+  document.getElementById('simList').innerHTML=sh;
+  document.getElementById('simUsers').style.display='block';
+}
+
+loadData(init);
+</script>
+</body>
+</html>
