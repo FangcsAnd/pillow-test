@@ -165,12 +165,12 @@ function runV3(){
     var checks=[dh<=tol.h,dn<=tol.n,ds<=tol.s,dd<=tol.d];
     var mc=0;for(var j=0;j<4;j++)if(checks[j])mc++;
     // Continuous match score (0-100%)
-    // Continuous match: within tolerance → 50-100%, outside → 0-50%
-    var headPct=(dh<=tol.h)?(100-Math.round(dh/tol.h*50)):Math.max(0,50-Math.round((dh-tol.h)/tol.h*50));
-    var neckPct=(dn<=tol.n)?(100-Math.round(dn/tol.n*50)):Math.max(0,50-Math.round((dn-tol.n)/tol.n*50));
-    var sidePct=(ds<=tol.s)?(100-Math.round(ds/tol.s*50)):Math.max(0,50-Math.round((ds-tol.s)/tol.s*50));
-    var hardPct=(dd<=tol.d)?(100-Math.round(dd/tol.d*50)):Math.max(0,50-Math.round((dd-tol.d)/tol.d*50));
-    var contMatch=Math.round((headPct+neckPct+sidePct+hardPct)/4);
+    // Match% = count*25 + precision bonus (within tolerance: 0~25 extra per item)
+    var headPrec=(dh<=tol.h)?Math.max(0,25-Math.round(dh/tol.h*25)):0;
+    var neckPrec=(dn<=tol.n)?Math.max(0,25-Math.round(dn/tol.n*25)):0;
+    var sidePrec=(ds<=tol.s)?Math.max(0,25-Math.round(ds/tol.s*25)):0;
+    var hardPrec=(dd<=tol.d)?Math.max(0,25-Math.round(dd/tol.d*25)):0;
+    var contMatch=Math.min(100, Math.round(mc*25 + (headPrec+neckPrec+sidePrec+hardPrec)));
     scored.push({p:p,dist:dist,match:mc,checks:checks,dh:dh,dn:dn,ds:ds,dd:dd,contMatch:contMatch});
   }
   scored.sort(function(a,b){return b.match-a.match||a.dist-b.dist;});
