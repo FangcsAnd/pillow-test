@@ -165,12 +165,12 @@ function runV3(){
     var checks=[dh<=tol.h,dn<=tol.n,ds<=tol.s,dd<=tol.d];
     var mc=0;for(var j=0;j<4;j++)if(checks[j])mc++;
     // Continuous match score (0-100%)
-    // Match% = count*25 + precision bonus (within tolerance: 0~25 extra per item)
-    var headPrec=(dh<=tol.h)?Math.max(0,25-Math.round(dh/tol.h*25)):0;
-    var neckPrec=(dn<=tol.n)?Math.max(0,25-Math.round(dn/tol.n*25)):0;
-    var sidePrec=(ds<=tol.s)?Math.max(0,25-Math.round(ds/tol.s*25)):0;
-    var hardPrec=(dd<=tol.d)?Math.max(0,25-Math.round(dd/tol.d*25)):0;
-    var contMatch=Math.min(100, Math.round(mc*25 + (headPrec+neckPrec+sidePrec+hardPrec)));
+    // Match% = count/4×80% + avg precision (max 20%)
+    var headPrec=(dh<=tol.h)?Math.round((1-dh/tol.h)*20):0;
+    var neckPrec=(dn<=tol.n)?Math.round((1-dn/tol.n)*20):0;
+    var sidePrec=(ds<=tol.s)?Math.round((1-ds/tol.s)*20):0;
+    var hardPrec=(dd<=tol.d)?Math.round((1-dd/tol.d)*20):0;
+    var contMatch=Math.min(100, Math.round(mc/4*80 + (headPrec+neckPrec+sidePrec+hardPrec)/4));
     scored.push({p:p,dist:dist,match:mc,checks:checks,dh:dh,dn:dn,ds:ds,dd:dd,contMatch:contMatch});
   }
   scored.sort(function(a,b){return b.match-a.match||a.dist-b.dist;});
