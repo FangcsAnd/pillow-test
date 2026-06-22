@@ -100,22 +100,15 @@ tr.best td { background:rgba(48,209,88,0.1) !important; }
   <div class="card">
     <h2>推荐结果 <span id="resultSummary" style="font-size:12px;color:rgba(255,255,255,0.4);"></span></h2>
     <table>
-      <thead><tr><th>排名</th><th>枕头</th><th>品牌</th><th>欧氏距离</th><th>匹配度</th><th>材质</th></tr></thead>
+      <thead><tr><th>排名</th><th>枕头ID</th><th>品牌型号</th><th>综合评分</th><th>评价</th><th>测试次数</th><th>依据</th><th>匹配度</th></tr></thead>
       <tbody id="resultBody"></tbody>
     </table>
   </div>
   <div class="card">
     <h2>推荐依据分析</h2>
     <table>
-      <thead><tr><th>枕头</th><th>后脑勺高</th><th>颈椎高</th><th>侧睡高</th><th>硬度</th><th>距离评分</th></tr></thead>
+      <thead><tr><th>枕头</th><th>综合分</th><th>历史评分</th><th>相似用户</th><th>高度匹配</th><th>仰睡</th><th>侧睡</th><th>颈高mm</th><th>硬度</th><th>材质</th></tr></thead>
       <tbody id="analysisBody"></tbody>
-    </table>
-  </div>
-  <div class="card">
-    <h2>各枕头参数对比</h2>
-    <table>
-      <thead><tr><th>枕头</th><th>后脑勺高</th><th>颈椎高</th><th>侧睡高</th><th>硬度</th><th>匹配度</th></tr></thead>
-      <tbody id="paramCompareBody"></tbody>
     </table>
   </div>
   <div class="card">
@@ -324,30 +317,16 @@ function recommend() {
   
   // Tables
   var rhtml='',ahtml='',phtml='';
-  for (var i=0;i<Math.min(8,pillowMatches.length);i++){
+  for (var i=0;i<Math.min(5,pillowMatches.length);i++){
     var t=pillowMatches[i]; var mm = t.dist<15?'高':(t.dist<30?'中':'低');
-    var headMatch=Math.abs(parseFloat(t.headH||0)-predHeadR)<=15;
-    var neckMatch=Math.abs(parseFloat(t.neckH||0)-predNeckR)<=12;
-    var sideMatch=Math.abs(parseFloat(t.sideH||0)-predSideR)<=15;
-    var hardMatch=Math.abs(parseFloat(t.hardness||0)-predHardR)<=8;
-    var mc=(headMatch?1:0)+(neckMatch?1:0)+(sideMatch?1:0)+(hardMatch?1:0);
-    var matchPct=Math.round(mc/4*100);
-    
-    rhtml+='<tr'+(i===0?' class="best"':'')+'><td>'+(i+1)+'</td><td><b>'+t.id+'</b></td><td>'+t.brand+'</td><td>欧氏距'+t.dist.toFixed(0)+'</td><td>'+matchPct+'%</td><td>'+t.material+'</td></tr>';
-    
-    ahtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td><td>'+t.headH+'mm</td><td>'+t.neckH+'mm</td><td>'+t.sideH+'mm</td><td>'+t.hardness+'HF</td><td style="color:'+(t.dist<20?'#30d158':t.dist<40?'#fdcb6e':'#ff453a')+'">'+mm+'</td></tr>';
-    
-    phtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td>';
-    phtml+='<td style="color:'+(headMatch?'#30d158':'#ff453a')+'">'+t.headH+'mm '+(headMatch?'✓':'✗')+'</td>';
-    phtml+='<td style="color:'+(neckMatch?'#30d158':'#ff453a')+'">'+t.neckH+'mm '+(neckMatch?'✓':'✗')+'</td>';
-    phtml+='<td style="color:'+(sideMatch?'#30d158':'#ff453a')+'">'+t.sideH+'mm '+(sideMatch?'✓':'✗')+'</td>';
-    phtml+='<td style="color:'+(hardMatch?'#30d158':'#ff453a')+'">'+t.hardness+'HF '+(hardMatch?'✓':'✗')+'</td>';
-    phtml+='<td><b style="color:'+(matchPct>=75?'#30d158':matchPct>=50?'#fdcb6e':'#ff453a')+'">'+matchPct+'%</b> ('+mc+'/4)</td></tr>';
+    rhtml+='<tr'+(i===0?' class="best"':'')+'><td>'+(i+1)+'</td><td><b>'+t.id+'</b></td><td>'+t.brand+'</td><td>'+t.material+'</td><td>距'+t.dist.toFixed(0)+'</td><td>'+mm+'</td></tr>';
+    ahtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td><td>'+t.headH+'mm</td><td>'+t.neckH+'mm</td><td>'+t.sideH+'mm</td><td>'+t.hardness+'HF</td></tr>';
+    phtml+='<tr><td><b>'+t.id+'</b> '+t.brand+'</td><td>'+t.headH+'mm</td><td>'+t.neckH+'mm</td><td>'+t.sideH+'mm</td><td>'+t.hardness+'HF</td><td>距'+t.dist.toFixed(0)+'('+mm+')</td></tr>';
   }
   document.getElementById('resultBody').innerHTML=rhtml;
   document.getElementById('analysisBody').innerHTML=ahtml;
   document.getElementById('paramCompareBody').innerHTML=phtml;
-  document.getElementById('matchDetail').innerHTML='<span style="color:rgba(255,255,255,0.5);">推荐参数：后脑勺高'+predHeadR+'mm 颈椎高'+predNeckR+'mm 侧睡高'+predSideR+'mm 硬度'+predHardR+'HF | 上方✓=在推荐范围内</span>';
+  document.getElementById('matchDetail').innerHTML='<span style="color:rgba(255,255,255,0.5);">加权KNN+余弦相似度+softmax温度缩放 | 相似身材→相似需求→相似参数</span>';
 }
 
 function loadData() {
