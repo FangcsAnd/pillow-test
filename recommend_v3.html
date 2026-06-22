@@ -164,12 +164,16 @@ function runV3(){
     var dist=Math.sqrt(dh*dh+dn*dn+ds*ds+Math.pow(dd*3,2));
     var checks=[dh<=tol.h,dn<=tol.n,ds<=tol.s,dd<=tol.d];
     var mc=0;for(var j=0;j<4;j++)if(checks[j])mc++;
-    scored.push({p:p,dist:dist,match:mc,checks:checks,dh:dh,dn:dn,ds:ds,dd:dd});
+    // Continuous match score (0-100%)
+    var headPct=Math.max(0,100-(dh/tol.h)*100),neckPct=Math.max(0,100-(dn/tol.n)*100);
+    var sidePct=Math.max(0,100-(ds/tol.s)*100),hardPct=Math.max(0,100-(dd/tol.d)*100);
+    var contMatch=Math.round((headPct+neckPct+sidePct+hardPct)/4);
+    scored.push({p:p,dist:dist,match:mc,checks:checks,dh:dh,dn:dn,ds:ds,dd:dd,contMatch:contMatch});
   }
   scored.sort(function(a,b){return b.match-a.match||a.dist-b.dist;});
   var mh='';
   for(var i=0;i<Math.min(6,scored.length);i++){
-    var t=scored[i],p=t.p,pm=Math.round(Math.max(0,100-t.dist)),mpct=Math.round(t.match/4*100);
+    var t=scored[i],p=t.p,mpct=Math.round(t.contMatch||(t.match/4*100));
     mh+='<tr class="'+(i===0?'best':'')+'"><td>'+(i+1)+(i===0?'🥇':'')+'</td><td>'+p.id+'</td><td>'+p.brand+'</td><td>'+p.material+'</td>';
     mh+='<td>'+p.head_height+'</td><td>'+p.neck_height+'</td><td>'+p.side_height+'</td><td>'+p.center_hardness+'</td>';
     mh+='<td style="color:'+(mpct>=75?'#30d158':mpct>=50?'#fdcb6e':'#ff453a')+'"><b>'+mpct+'%</b></td>';
