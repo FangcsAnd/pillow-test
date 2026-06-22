@@ -157,7 +157,7 @@ function runV3(){
   document.getElementById('params').innerHTML=pc;
   // Match pillows
   var mem=[];for(var i=0;i<pillows.length;i++){if((pillows[i].material||'').indexOf('记忆棉')!==-1)mem.push(pillows[i]);}
-  var tol={h:10,n:10,s:10,d:3},scored=[];
+  var tol={h:10,n:10,s:10,d:5},scored=[];
   for(var i=0;i<mem.length;i++){
     var p=mem[i],ph2=toNum(p.head_height),pn2=toNum(p.neck_height),ps2=toNum(p.side_height),pd2=toNum(p.center_hardness);
     var dh=Math.abs(ph2-ph),dn=Math.abs(pn2-pn),ds=Math.abs(ps2-ps),dd=Math.abs(pd2-pd);
@@ -165,8 +165,8 @@ function runV3(){
     var checks=[dh<=tol.h,dn<=tol.n,ds<=tol.s,dd<=tol.d];
     var mc=0;for(var j=0;j<4;j++)if(checks[j])mc++;
     // Continuous match score (0-100%)
-    var headPct=Math.max(0,100-(dh/tol.h)*100),neckPct=Math.max(0,100-(dn/tol.n)*100);
-    var sidePct=Math.max(0,100-(ds/tol.s)*100),hardPct=Math.max(0,100-(dd/tol.d)*100);
+    var headPct=Math.round(Math.max(0,100*(1-dh/(tol.h*2)))),neckPct=Math.round(Math.max(0,100*(1-dn/(tol.n*2))));
+    var sidePct=Math.round(Math.max(0,100*(1-ds/(tol.s*2)))),hardPct=Math.round(Math.max(0,100*(1-dd/(tol.d*2))));
     var contMatch=Math.round((headPct+neckPct+sidePct+hardPct)/4);
     scored.push({p:p,dist:dist,match:mc,checks:checks,dh:dh,dn:dn,ds:ds,dd:dd,contMatch:contMatch});
   }
