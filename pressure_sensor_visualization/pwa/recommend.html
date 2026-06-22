@@ -286,6 +286,7 @@ function recommend() {
     pillowMatches.push({id:k, brand:p.brand, material:p.material, headH:p.head_height, neckH:p.neck_height, sideH:p.side_height, hardness:p.center_hardness, dist:euclideanDist(idealV, pv)});
   }
   pillowMatches.sort(function(a,b){return a.dist-b.dist;});
+  window._ranked = pillowMatches;
   
   // Display
   var h = '';
@@ -371,8 +372,6 @@ function showPillowUsers(pid) {
   document.getElementById('modalTitle').textContent = pid + ' 测试用户';
   document.getElementById('modalContent').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('show');
-}
-  document.getElementById('matchDetail').innerHTML = matchInfo;
 }
 
 // Auto-load on open
