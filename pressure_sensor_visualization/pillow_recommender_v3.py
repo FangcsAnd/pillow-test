@@ -97,7 +97,7 @@ class ImprovedRecommender:
         sims = np.array([cosine_sim(vn, self.Xn[i]) for i in valid])
         top = np.argsort(sims)[::-1][:k]; tids = [self.ids[valid[i]] for i in top]
         ts = sims[top]; w = softmax(ts, 0.15)
-        hv,nv,sv,dv,ws=[],[],[],[]
+        hv,nv,sv,dv,ws=[],[],[],[],[]
         for uid,wt in zip(tids, w):
             ide = self.ideal.get(uid,{})
             for arr,k in [(hv,'h'),(nv,'n'),(sv,'s'),(dv,'ch')]:
