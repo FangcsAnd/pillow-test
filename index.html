@@ -929,10 +929,9 @@ function finishRecording() {
   };
 
   historyRecords.push(rec);
-  saveHistory();
   updateParams(avgParams);
   drawHeatmap(averagedGrid);
-  refreshHistory();
+  saveHistory(); // This will call refreshHistory() after save completes
 }
 
 function nowTimeString() {
@@ -945,6 +944,11 @@ function saveHistory() {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', '/api/save_records', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onload = function() {
+    if (xhr.status === 200) refreshHistory();
+    else alert('保存失败: ' + xhr.status);
+  };
+  xhr.onerror = function() { alert('保存失败，服务器未响应'); };
   xhr.send(JSON.stringify({records: historyRecords}));
 }
 
