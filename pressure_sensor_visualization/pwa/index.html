@@ -942,11 +942,10 @@ function nowTimeString() {
 }
 
 function saveHistory() {
-  var blob = new Blob([JSON.stringify(historyRecords, null, 2)], {type:'application/json'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'records.json';
-  a.click();
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/save_records', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify({records: historyRecords}));
 }
 
 function loadHistory() {
