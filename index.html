@@ -942,14 +942,11 @@ function nowTimeString() {
 }
 
 function saveHistory() {
-  // Auto-download updated records.json
-  setTimeout(function(){
-    var blob = new Blob([JSON.stringify(historyRecords, null, 2)], {type:'application/json'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'records.json';
-    a.click();
-  }, 500);
+  var blob = new Blob([JSON.stringify(historyRecords, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'records.json';
+  a.click();
 }
 
 function loadHistory() {
