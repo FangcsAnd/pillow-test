@@ -818,7 +818,8 @@ function convertOldScore(v) {
 }
 
 function recordData() {
-  if (isRecording) return;
+  if (!document.getElementById('recName').value && !document.getElementById('recUserId').value) { alert('请先选择或填写被试信息'); return; }
+  if (!document.getElementById('recPillowId').value) { alert('请先选择枕头信息'); return; }
   isRecording = true;
   recordCountdown = 3.0;
   recordSamples = [];
