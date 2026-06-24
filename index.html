@@ -936,21 +936,19 @@ function nowTimeString() {
 }
 
 function saveHistory() {
-  try { localStorage.setItem('pillow_records', JSON.stringify(historyRecords)); } catch(e) {}
+  // Auto-download updated records.json
+  setTimeout(function(){
+    var blob = new Blob([JSON.stringify(historyRecords, null, 2)], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'records.json';
+    a.click();
+  }, 500);
 }
 
 function loadHistory() {
-  var raw = localStorage.getItem('pillow_records');
-  historyRecords = raw ? JSON.parse(raw) : [];
-  // Also load from records.json for shared records
-  fetch('data/records.json').then(function(r){return r.json();}).then(function(shared){
-    if (shared && shared.length) {
-      var local = historyRecords;
-      var seen = {};
-      for (var i=0;i<local.length;i++){var k=local[i].time+'_'+local[i].user_id+'_'+local[i].pillow_id;seen[k]=1;}
-      for (var i=0;i<shared.length;i++){var k2=shared[i].time+'_'+shared[i].user_id+'_'+shared[i].pillow_id;if(!seen[k2]){seen[k2]=1;local.push(shared[i]);}}
-      historyRecords = local;
-    }
+  fetch('data/records.json').then(function(r){return r.json();}).then(function(data){
+    historyRecords = data || [];
     refreshHistoryUI();
   }).catch(function(){ refreshHistoryUI(); });
 }
@@ -977,14 +975,7 @@ function showCrossMatrix() {
 }
 
 function loadSharedRecords() {
-  fetch('data/records.json').then(function(r){ return r.json(); }).then(function(shared){
-    if (!shared || !shared.length) { alert('没有共享记录'); return; }
-    var existing = JSON.parse(localStorage.getItem('pillow_records') || '[]');
-    existing = dedupeRecords(existing.concat(shared));
-    localStorage.setItem('pillow_records', JSON.stringify(existing));
-    loadHistory();
-    alert('已加载 ' + shared.length + ' 条共享记录');
-  }).catch(function(){ alert('加载失败，检查 data/records.json'); });
+  loadHistory();
 }
 
 function dedupeRecords(records) {
@@ -1371,34 +1362,15 @@ function resetToTest() {
 
 function exportHistory() {
   if (!historyRecords.length) { alert('暂无历史记录'); return; }
-  var blob = new Blob([JSON.stringify(historyRecords, null, 2)], {type: 'application/json'});
+  var blob = new Blob([JSON.stringify(historyRecords, null, 2)], {type:'application/json'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'records.json';
   a.click();
-  alert('请将下载的 records.json 替换 data/records.json 后刷新');
 }
 
 function importHistory() {
-  var input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = function() {
-    var reader = new FileReader();
-    reader.onload = function() {
-      try {
-        var imported = JSON.parse(reader.result);
-        if (!Array.isArray(imported)) { alert('无效的备份文件'); return; }
-        var existing = JSON.parse(localStorage.getItem('pillow_records') || '[]');
-        existing = existing.concat(imported);
-        localStorage.setItem('pillow_records', JSON.stringify(existing));
-        refreshHistory();
-        alert('成功导入 ' + imported.length + ' 条记录');
-      } catch(e) { alert('文件解析失败'); }
-    };
-    reader.readAsText(input.files[0]);
-  };
-  input.click();
+  alert('请将下载的 records.json 替换 data/records.json 后刷新页面');
 }
 
 document.getElementById('showVals').addEventListener('change', function(){
