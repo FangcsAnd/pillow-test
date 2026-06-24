@@ -400,6 +400,9 @@ function computeComfortLabel(c) {
 }
 function convertOldScore(v) {
   if (v === undefined || v === null) return 3;
+  // New scale 1-5: return directly
+  if (v >= 1 && v <= 5) return Math.round(v);
+  // Old -10~10 scale
   if (v <= -5) return 1; if (v <= -1) return 2; if (v <= 3) return 3; if (v <= 7) return 4;
   return 5;
 }
@@ -813,6 +816,9 @@ function computeComfortLabel(c) {
 }
 function convertOldScore(v) {
   if (v === undefined || v === null) return 3;
+  // New scale 1-5: return directly
+  if (v >= 1 && v <= 5) return Math.round(v);
+  // Old -10~10 scale
   if (v <= -5) return 1; if (v <= -1) return 2; if (v <= 3) return 3; if (v <= 7) return 4;
   return 5;
 }
