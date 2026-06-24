@@ -154,5 +154,18 @@
     "neck_hardness": "14",
     "edge_hardness_l": "14",
     "edge_hardness_r": "14"
+  },
+  {
+    "id": "p019",
+    "brand": "时光存折蝶形枕",
+    "material": "记忆棉",
+    "size": "790x390",
+    "head_height": "60",
+    "neck_height": "93",
+    "side_height": "87",
+    "center_hardness": "15",
+    "neck_hardness": "16",
+    "edge_hardness_l": "18",
+    "edge_hardness_r": "18"
   }
 ]
