@@ -942,7 +942,17 @@ function saveHistory() {
 function loadHistory() {
   var raw = localStorage.getItem('pillow_records');
   historyRecords = raw ? JSON.parse(raw) : [];
-  refreshHistoryUI();
+  // Also load from records.json for shared records
+  fetch('data/records.json').then(function(r){return r.json();}).then(function(shared){
+    if (shared && shared.length) {
+      var local = historyRecords;
+      var seen = {};
+      for (var i=0;i<local.length;i++){var k=local[i].time+'_'+local[i].user_id+'_'+local[i].pillow_id;seen[k]=1;}
+      for (var i=0;i<shared.length;i++){var k2=shared[i].time+'_'+shared[i].user_id+'_'+shared[i].pillow_id;if(!seen[k2]){seen[k2]=1;local.push(shared[i]);}}
+      historyRecords = local;
+    }
+    refreshHistoryUI();
+  }).catch(function(){ refreshHistoryUI(); });
 }
 
 function showCrossMatrix() {
@@ -1360,13 +1370,13 @@ function resetToTest() {
 }
 
 function exportHistory() {
-  var records = JSON.parse(localStorage.getItem('pillow_records') || '[]');
-  if (!records.length) { alert('暂无历史记录'); return; }
-  var blob = new Blob([JSON.stringify(records, null, 2)], {type: 'application/json'});
+  if (!historyRecords.length) { alert('暂无历史记录'); return; }
+  var blob = new Blob([JSON.stringify(historyRecords, null, 2)], {type: 'application/json'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'pillow_records_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.download = 'records.json';
   a.click();
+  alert('请将下载的 records.json 替换 data/records.json 后刷新');
 }
 
 function importHistory() {
