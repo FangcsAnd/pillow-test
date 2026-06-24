@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
-"""Minimal server for pillow PWA - supports saving records.json"""
-import http.server, json, os, cgi
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json, os
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
-class Handler(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=ROOT, **kwargs)
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        path = self.path.split('?')[0]
+        if path == '/': path = '/index.html'
+        filepath = os.path.join(ROOT, path.lstrip('/'))
+        if os.path.isfile(filepath):
+            self.send_response(200)
+            ct = 'text/html' if filepath.endswith('.html') else 'application/javascript' if filepath.endswith('.js') else 'application/json' if filepath.endswith('.json') else 'text/plain'
+            self.send_header('Content-Type', ct)
+            self.end_headers()
+            with open(filepath, 'rb') as f: self.wfile.write(f.read())
+        else:
+            self.send_error(404)
 
     def do_POST(self):
         if self.path == '/api/save_records':
-            length = int(self.headers.get('Content-Length', 0))
-            data = json.loads(self.rfile.read(length))
+            length = int(self.headers['Content-Length'])
+            body = self.rfile.read(length)
+            data = json.loads(body)
             filepath = os.path.join(ROOT, 'data', 'records.json')
             existing = []
             if os.path.exists(filepath):
@@ -29,6 +40,5 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_error(404)
 
 if __name__ == '__main__':
-    port = 9000
-    print(f'PWA server running at http://localhost:{port}')
-    http.server.HTTPServer(('', port), Handler).serve_forever()
+    print('http://localhost:9000')
+    HTTPServer(('', 9000), Handler).serve_forever()
