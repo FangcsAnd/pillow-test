@@ -112,6 +112,10 @@ button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
       <div style="margin-top:4px;font-size:9px;color:rgba(255,255,255,0.3);" id="comfortEstDetail"></div>
     </div>
   </div>
+  <div class="card" id="sessionCompareCard" style="display:none;">
+    <div class="card-title">本场测试对比 <span id="sessionCount" style="font-size:10px;"></span></div>
+    <div id="sessionCompareList" style="font-size:10px;max-height:120px;overflow-y:auto;"></div>
+  </div>
   <div class="card">
     <div class="card-title">枕头测试参数</div>
     <div class="param-grid" id="paramsGrid"></div>
@@ -225,6 +229,9 @@ var serialBuffer = new Uint8Array(0);
 var canvas = document.getElementById('heatmap');
 var ctx = canvas.getContext('2d');
 var historyRecords = [];
+var comfortModel = null;
+var currentUserId = '';
+var sessionScores = [];
 
 (function() {
   for (var i = 0; i < SIZE; i++) { currentGrid[i] = []; for (var j = 0; j < SIZE; j++) { currentGrid[i][j] = 0; } }
@@ -485,50 +492,262 @@ document.addEventListener('click', function(e) {
   if (!e.target.classList.contains('help')) document.getElementById('helpPopup').style.display = 'none';
 }, true);
 
+function clampi(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function buildComfortModel() {
+  var records = historyRecords;
+  if (!records || records.length === 0) { comfortModel = null; return; }
+
+  var m = { byPosition: {}, byUser: {}, idealGrids: {} };
+
+  var metrics = ['avg_max','avg_p95','avg_std','avg_area','avg_head_ratio','avg_neck_ratio',
+    'avg_shoulder_ratio','avg_gradient','avg_concentration','avg_neck_continuity'];
+
+  var lowerIsBetter = { avg_max:true, avg_p95:true, avg_std:true,
+    avg_shoulder_ratio:true, avg_concentration:true, avg_gradient:false,
+    avg_head_ratio:false, avg_neck_ratio:false, avg_area:false, avg_neck_continuity:false };
+
+  function comfortScore(r) {
+    var c = r.comfort || {};
+    var total = 0, tw = 0;
+    var w = { overall:45, supine:25, side:25, neck:2, head:1, even:1, pressure:1 };
+    for (var k in w) { total += convertOldScore(c['comfort_' + k]) * w[k]; tw += w[k]; }
+    return tw > 0 ? total / tw : 3;
+  }
+
+  var metricThresholds = {
+    avg_shoulder_ratio: { lowerBetter: true },
+    avg_p95: { lowerBetter: true },
+    avg_head_ratio: { lowerBetter: false },
+    avg_neck_ratio: { lowerBetter: false },
+    avg_concentration: { lowerBetter: true },
+    avg_std: { lowerBetter: true }
+  };
+
+  var positions = ['仰睡', '侧睡'];
+  for (var pi = 0; pi < positions.length; pi++) {
+    var pos = positions[pi];
+    var posRecs = records.filter(function(r){ return r.sleep_pos === pos; });
+    if (posRecs.length < 5) continue;
+
+    var scored = posRecs.map(function(r){ return { r:r, score:comfortScore(r) }; });
+    scored.sort(function(a,b){ return b.score - a.score; });
+    var topN = Math.max(1, Math.ceil(scored.length * 0.2));
+    var botN = Math.max(1, Math.ceil(scored.length * 0.2));
+    var topRecs = []; for (var t = 0; t < topN; t++) topRecs.push(scored[t].r);
+    var botRecs = []; for (var b = scored.length - botN; b < scored.length; b++) botRecs.push(scored[b].r);
+
+    var thresholds = {};
+    for (var mk in metricThresholds) {
+      var topVals = [], botVals = [];
+      for (var tv = 0; tv < topRecs.length; tv++) {
+        var v = topRecs[tv][mk];
+        if (typeof v === 'number' && !isNaN(v)) topVals.push(v);
+      }
+      for (var bv = 0; bv < botRecs.length; bv++) {
+        var v2 = botRecs[bv][mk];
+        if (typeof v2 === 'number' && !isNaN(v2)) botVals.push(v2);
+      }
+      if (topVals.length > 0 && botVals.length > 0) {
+        var exc = topVals.reduce(function(s,v){return s+v;},0) / topVals.length;
+        var poor = botVals.reduce(function(s,v){return s+v;},0) / botVals.length;
+        var lb = metricThresholds[mk].lowerBetter;
+        if (lb && exc > poor) { var tmp = exc; exc = poor; poor = tmp; }
+        if (!lb && exc < poor) { var tmp = exc; exc = poor; poor = tmp; }
+        var gap = Math.abs(exc - poor);
+        var minGap = Math.max(Math.abs(exc) * 0.15, 3);
+        if (gap < minGap) {
+          var allVals = [];
+          for (var av = 0; av < posRecs.length; av++) {
+            var vt = posRecs[av][mk];
+            if (typeof vt === 'number' && !isNaN(vt)) allVals.push(vt);
+          }
+          if (allVals.length > 3) {
+            allVals.sort(function(a,b){return a-b;});
+            var nv = allVals.length;
+            exc = allVals[Math.floor(nv * (lb ? 0.75 : 0.10))];
+            poor = allVals[Math.floor(nv * (lb ? 0.25 : 0.90))];
+          }
+        }
+        thresholds[mk] = { excellent: Math.round(exc), poor: Math.round(poor), lowerBetter: lb };
+      }
+    }
+    m.byPosition[pos] = { thresholds: thresholds, records: posRecs };
+
+    var idealGrid = [];
+    for (var row = 0; row < 16; row++) {
+      idealGrid[row] = [];
+      for (var col = 0; col < 16; col++) {
+        var gsum = 0, gcnt = 0;
+        for (var tr = 0; tr < topRecs.length; tr++) {
+          var g = topRecs[tr].avg_grid;
+          if (typeof g === 'string') { try { g = JSON.parse(g); } catch(e) { continue; } }
+          if (g && row < g.length && col < g[row].length) { gsum += Number(g[row][col]) || 0; gcnt++; }
+        }
+        idealGrid[row][col] = gcnt > 0 ? Math.round(gsum / gcnt) : 0;
+      }
+    }
+    m.idealGrids[pos] = idealGrid;
+  }
+
+  for (var i = 0; i < records.length; i++) {
+    var rec = records[i];
+    var uid = rec.user_id || '';
+    if (!m.byUser[uid]) m.byUser[uid] = [];
+    m.byUser[uid].push(rec);
+  }
+
+  for (var uid in m.byUser) {
+    var urecs = m.byUser[uid];
+    var scored = urecs.map(function(r){ return { r:r, score:comfortScore(r) }; });
+    scored.sort(function(a,b){ return b.score - a.score; });
+    m.byUser[uid] = { records: urecs, bestScore: scored[0].score, scored: scored };
+  }
+
+  comfortModel = m;
+}
+
+function zScoreToGrade(z) {
+  return Math.round(50 + 40 * Math.tanh(z * 1.3));
+}
+
+function gradeFromValue(val, excellent, poor, lowerBetter) {
+  if (lowerBetter) {
+    if (val <= excellent) return 90;
+    if (val <= (excellent + poor) / 2) return 70;
+    if (val >= poor) return 15;
+    return Math.round(70 - 55 * (val - (excellent+poor)/2) / (poor - (excellent+poor)/2));
+  } else {
+    if (val >= excellent) return 90;
+    if (val >= (excellent + poor) / 2) return 70;
+    if (val <= poor) return 15;
+    return Math.round(70 - 55 * ((excellent+poor)/2 - val) / ((excellent+poor)/2 - poor));
+  }
+}
+
 function estimateComfortFromGrid(grid) {
   var el = document.getElementById('comfortEstScore');
   var lab = document.getElementById('comfortEstLabel');
   var det = document.getElementById('comfortEstDetail');
   if (!el) return;
-  
-  // Calculate metrics
+
   var totalSum = 0, activePts = 0;
-  for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++) { totalSum += grid[i][j]; if (grid[i][j] > 5) activePts++; }
+  for (var i = 0; i < 16; i++) for (var j = 0; j < 16; j++) { totalSum += grid[i][j]; if (grid[i][j] > 5) activePts++; }
   if (activePts < 10) { el.textContent = '--'; lab.textContent = '等待传感器数据'; det.textContent = ''; return; }
-  
+
+  var maxVal = 0; for (var i=0;i<16;i++) for(var j=0;j<16;j++) maxVal=Math.max(maxVal,grid[i][j]);
+
+  var flatAll = [];
+  for (var i=0;i<16;i++) for(var j=0;j<16;j++) flatAll.push(grid[i][j]);
+  flatAll.sort(function(a,b){return b-a;});
+  var p95Count = Math.max(1, Math.floor(flatAll.length * 0.05));
+  var p95Sum = 0; for (var pi = 0; pi < p95Count; pi++) p95Sum += flatAll[pi];
+  var p95 = Math.round(p95Sum / p95Count);
   var avg = totalSum / 256;
-  var maxVal = 0; for (var i=0;i<SIZE;i++) for(var j=0;j<SIZE;j++) maxVal=Math.max(maxVal,grid[i][j]);
-  
-  // Pressure uniformity (std / mean - lower is more uniform)
-  var s=0,c=0; for(var i=0;i<SIZE;i++) for(var j=0;j<SIZE;j++) {if(grid[i][j]>0){s+=Math.pow(grid[i][j]-avg,2);c++;}}
-  var std=c>0?Math.sqrt(s/c):0;
-  var uniformity = avg > 0 ? Math.min(1, avg / (std + 1)) : 0;
-  
-  // Contact area ratio (optimal ~30-50%)
-  var areaRatio = activePts / 256;
-  var areaScore = areaRatio > 0.1 && areaRatio < 0.7 ? Math.min(1, (0.4 - Math.abs(areaRatio - 0.4)) * 3) : 0;
-  
-  // Peak pressure penalty (too high = uncomfortable)
-  var peakScore = maxVal < 200 ? 1 : Math.max(0, 1 - (maxVal - 200) / 100);
-  
-  // Head/neck/shoulder balance
+
+  var s=0,cn=0; for(var i=0;i<16;i++) for(var j=0;j<16;j++) { if(grid[i][j]>0){ s+=Math.pow(grid[i][j]-avg,2); cn++; } }
+  var std=cn>0?Math.sqrt(s/cn):0;
+
   var headSum=0,neckSum=0,shoulderSum=0;
-  for(var i=0;i<10;i++) for(var j=0;j<SIZE;j++) headSum+=grid[i][j];
-  for(var i=10;i<13;i++) for(var j=0;j<SIZE;j++) neckSum+=grid[i][j];
-  for(var i=13;i<SIZE;i++) for(var j=0;j<SIZE;j++) shoulderSum+=grid[i][j];
+  for(var i=0;i<10;i++) for(var j=0;j<16;j++) headSum+=grid[i][j];
+  for(var i=10;i<13;i++) for(var j=0;j<16;j++) neckSum+=grid[i][j];
+  for(var i=13;i<16;i++) for(var j=0;j<16;j++) shoulderSum+=grid[i][j];
   var total=Math.max(headSum+neckSum+shoulderSum,1);
-  var neckRatio=neckSum/total;
-  var balanceScore = neckRatio > 0.1 && neckRatio < 0.4 ? Math.min(1, (0.25 - Math.abs(neckRatio - 0.2)) * 8) : 0;
-  
-  // Overall comfort score (0-5)
-  var score = (uniformity * 2 + areaScore * 1.5 + peakScore * 1 + balanceScore * 0.5) / 5 * 5;
-  score = Math.round(score * 10) / 10;
-  
-  var label = score >= 4 ? '不错(还不错)' : (score >= 3 ? '能接受' : (score >= 2 ? '差(不太舒服)' : '很差(垃圾)'));
-  el.textContent = score.toFixed(1);
-  el.style.color = score >= 3.5 ? '#30d158' : (score >= 2.5 ? '#fdcb6e' : '#ff453a');
-  lab.textContent = label;
-  det.textContent = '峰值' + maxVal + ' | 均匀度' + Math.round(uniformity*100) + '% | 面积' + Math.round(areaRatio*100) + '% | 颈部' + Math.round(neckRatio*100) + '%';
+  var headRatio=headSum/total, neckRatio=neckSum/total, shoulderRatio=shoulderSum/total;
+
+  var gradientSum = 0, gCnt = 0;
+  for (var i2=0;i2<16;i2++) {
+    for (var j2=0;j2<15;j2++) { gradientSum += Math.abs(grid[i2][j2]-grid[i2][j2+1]); gCnt++; }
+    if (i2<15) { for (var jb=0;jb<16;jb++) { gradientSum += Math.abs(grid[i2][jb]-grid[i2+1][jb]); gCnt++; } }
+  }
+  var gradient = gradientSum / Math.max(gCnt, 1);
+
+  var nonzero = []; for(var i=0;i<flatAll.length;i++) if(flatAll[i]>0) nonzero.push(flatAll[i]);
+  var concentration = 0;
+  if (nonzero.length > 0) {
+    var sumSq = 0, sumVal = 0;
+    for (var ni=0;ni<nonzero.length;ni++) { sumSq += nonzero[ni]*nonzero[ni]; sumVal += nonzero[ni]; }
+    concentration = Math.round(sumSq / Math.max(sumVal*sumVal, 1) * 100);
+  }
+
+  var selPos = document.getElementById('recSleepPos');
+  var sleepPos = (selPos && selPos.value && selPos.value !== '') ? selPos.value : '';
+
+  var m = comfortModel;
+  var allGrades = [];
+
+  if (m && sleepPos && m.byPosition[sleepPos] && m.byPosition[sleepPos].thresholds) {
+    var thresholds = m.byPosition[sleepPos].thresholds;
+
+    var dimDefs = [
+      { key: 'avg_shoulder_ratio', name: '肩部支撑', displayVal: Math.round(shoulderRatio*100) },
+      { key: 'avg_p95',           name: '压峰控制', displayVal: p95 },
+      { key: 'avg_head_ratio',    name: '头部分布', displayVal: Math.round(headRatio*100) },
+      { key: 'avg_neck_ratio',    name: '颈部支撑', displayVal: Math.round(neckRatio*100) },
+      { key: 'avg_concentration', name: '压力集中', displayVal: concentration },
+      { key: 'avg_std',           name: '均匀程度', displayVal: Math.round(std) }
+    ];
+
+    var currentVals = {
+      avg_shoulder_ratio: Math.round(shoulderRatio*100), avg_p95: p95,
+      avg_head_ratio: Math.round(headRatio*100), avg_neck_ratio: Math.round(neckRatio*100),
+      avg_concentration: concentration, avg_std: Math.round(std)
+    };
+
+    var allGrades = [];
+    for (var di = 0; di < dimDefs.length; di++) {
+      var dd = dimDefs[di];
+      var th = thresholds[dd.key];
+      if (!th) continue;
+      var grade = gradeFromValue(currentVals[dd.key], th.excellent, th.poor, th.lowerBetter);
+      allGrades.push({ name: dd.name, grade: grade, displayVal: dd.displayVal, key: dd.key });
+    }
+
+    var sortedByGrade = allGrades.slice().sort(function(a,b){ return a.grade - b.grade; });
+    var weakest = sortedByGrade[0];
+    var mid = sortedByGrade[Math.floor(sortedByGrade.length / 2)];
+    var meanGrade = 0;
+    for (var ag = 0; ag < allGrades.length; ag++) meanGrade += allGrades[ag].grade;
+    meanGrade = Math.round(meanGrade / allGrades.length);
+
+    var finalScore = Math.round(weakest.grade * 0.50 + mid.grade * 0.30 + meanGrade * 0.20);
+
+    if (comfortModel && comfortModel.idealGrids[sleepPos]) {
+      var idealGrid = comfortModel.idealGrids[sleepPos];
+      var gd = 0, ga = 0;
+      for (var ri=0; ri<16; ri++) for (var cj=0; cj<16; cj++) {
+        if (grid[ri][cj] > 5 || idealGrid[ri][cj] > 5) { gd += Math.pow(grid[ri][cj] - idealGrid[ri][cj], 2); ga++; }
+      }
+      if (ga > 0) {
+        var gridSim = clampi(1 - Math.sqrt(gd / ga) / 60, 0, 1) * 100;
+        finalScore = Math.round(finalScore * 0.65 + gridSim * 0.35);
+        allGrades.push({ name: '形似度', grade: Math.round(gridSim), displayVal: 0, key: 'grid' });
+      }
+    }
+
+    finalScore = clampi(finalScore, 0, 100);
+
+    var label;
+    if (finalScore >= 75) label = '不错(还不错)';
+    else if (finalScore >= 55) label = '能接受';
+    else if (finalScore >= 35) label = '差(不太舒服)';
+    else label = '很差(垃圾)';
+
+    el.textContent = finalScore.toString();
+    el.style.color = finalScore >= 65 ? '#30d158' : (finalScore >= 48 ? '#fdcb6e' : '#ff453a');
+    lab.textContent = label + ' [' + sleepPos + ']';
+
+    var dParts = [];
+    for (var dp = 0; dp < sortedByGrade.length && dp < 4; dp++) {
+      var sg = sortedByGrade[dp];
+      dParts.push(sg.name + ':' + sg.grade);
+    }
+    det.textContent = dParts.join(' ');
+  } else {
+    el.textContent = '--';
+    lab.textContent = '请选择睡姿';
+    det.textContent = '';
+  }
 }
 
 function onSensorData(grid) {
@@ -678,32 +897,23 @@ function buildParamGrid() {
 }
 
 function loadPillows() {
-  fetch('data/pillows.json').then(function(r){ return r.json(); }).then(function(data){
-    var saved = localStorage.getItem('pillow_pillows');
-    if (saved) {
-      pillowData = JSON.parse(saved);
-    } else {
-      pillowData = data;
-    }
-    pillowData = pillowData.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
+  fetch('data/pillows.json?t=' + Date.now()).then(function(r){ return r.json(); }).then(function(data){
+    pillowData = data.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
     refreshPillowDropdown();
   }).catch(function(e){ console.error('Failed to load pillows:', e); });
 }
 
 function loadUsers() {
-  fetch('data/users.json').then(function(r){ return r.json(); }).then(function(data){
-    var saved = localStorage.getItem('pillow_users');
-    if (saved) {
-      userData = JSON.parse(saved);
-    } else {
-      userData = data;
-    }
+  fetch('data/users.json?t=' + Date.now()).then(function(r){ return r.json(); }).then(function(data){
+    userData = data;
     refreshUserDropdown();
   }).catch(function(e){ console.error('Failed to load users:', e); });
 }
 
 function onUserSelect() {
   var id = document.getElementById('recUserId').value;
+  currentUserId = id;
+  buildComfortModel();
   var user = null;
   for (var i = 0; i < userData.length; i++) { if (userData[i].id === id) { user = userData[i]; break; } }
   var fields = ['recName','recGender','recAge','recHeight','recWeight','recShoulder','recNeckHistory','recNeckPain'];
@@ -931,7 +1141,63 @@ function finishRecording() {
   historyRecords.push(rec);
   updateParams(avgParams);
   drawHeatmap(averagedGrid);
-  saveHistory(); // This will call refreshHistory() after save completes
+  saveNewRecord(rec);
+
+  var currentScoreEl = document.getElementById('comfortEstScore');
+  var currentLabel = document.getElementById('comfortEstLabel').textContent;
+  var scoreVal = parseInt(currentScoreEl.textContent) || 0;
+  if (scoreVal > 0) {
+    sessionScores.push({
+      pillow_id: rec.pillow_id,
+      pillow_brand: rec.pillow_brand,
+      sleep_pos: rec.sleep_pos,
+      score: scoreVal,
+      label: currentLabel,
+      time: rec.time
+    });
+    updateSessionCompare();
+  }
+}
+
+function updateSessionCompare() {
+  var card = document.getElementById('sessionCompareCard');
+  var list = document.getElementById('sessionCompareList');
+  var cnt = document.getElementById('sessionCount');
+  if (!card || sessionScores.length === 0) return;
+
+  card.style.display = 'block';
+  cnt.textContent = '(' + sessionScores.length + '次)';
+
+  var byKey = {};
+  for (var i = 0; i < sessionScores.length; i++) {
+    var s = sessionScores[i];
+    var key = s.pillow_id + '_' + s.sleep_pos;
+    if (!byKey[key]) byKey[key] = { scores: [], pillow_id: s.pillow_id, brand: s.pillow_brand, pos: s.sleep_pos };
+    byKey[key].scores.push(s.score);
+  }
+
+  var entries = [];
+  for (var k in byKey) {
+    var e = byKey[k];
+    var avg = Math.round(e.scores.reduce(function(s,v){return s+v;},0) / e.scores.length);
+    entries.push({ key: k, pillow_id: e.pillow_id, brand: e.brand, pos: e.pos, avg: avg, count: e.scores.length });
+  }
+  entries.sort(function(a,b){ return b.avg - a.avg; });
+
+  var html = '';
+  for (var ei = 0; ei < entries.length; ei++) {
+    var e = entries[ei];
+    var color = e.avg >= 65 ? '#30d158' : (e.avg >= 48 ? '#fdcb6e' : '#ff453a');
+    var bar = '';
+    for (var b = 0; b < Math.round(e.avg / 5); b++) bar += '■';
+    html += '<div style="padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);">';
+    html += '<span style="color:' + color + ';font-weight:700;">' + e.avg + '</span> ';
+    html += '<span>' + e.brand.substring(0, 8) + '</span> ';
+    html += '<span style="color:rgba(255,255,255,0.3);">[' + e.pos + ']</span>';
+    html += '<span style="color:rgba(255,255,255,0.2);margin-left:4px;">' + bar + '</span>';
+    html += '</div>';
+  }
+  list.innerHTML = html;
 }
 
 function nowTimeString() {
@@ -940,21 +1206,21 @@ function nowTimeString() {
   return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
 }
 
-function saveHistory() {
+function saveNewRecord(rec) {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', '/api/save_records', true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.onload = function() {
     if (xhr.status === 200) refreshHistory();
-    else alert('保存失败: ' + xhr.status);
   };
-  xhr.onerror = function() { alert('保存失败，服务器未响应'); };
-  xhr.send(JSON.stringify({records: historyRecords}));
+  xhr.onerror = function() {};
+  xhr.send(JSON.stringify({records: [rec]}));
 }
 
 function loadHistory() {
   fetch('data/records.json').then(function(r){return r.json();}).then(function(data){
     historyRecords = data || [];
+    buildComfortModel();
     refreshHistoryUI();
   }).catch(function(){ refreshHistoryUI(); });
 }
@@ -1054,7 +1320,12 @@ function deleteUser(idx) {
   saveUserData();
   showAllUsers();
 }
-function saveUserData() { localStorage.setItem('pillow_users', JSON.stringify(userData)); }
+function saveUserData() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/save_users', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify(userData));
+}
 function refreshUserDropdown() {
   var sel = document.getElementById('recUserId');
   var cur = sel.value;
@@ -1149,7 +1420,10 @@ function savePillow(idx) {
 }
 
 function savePillowData() {
-  localStorage.setItem('pillow_pillows', JSON.stringify(pillowData));
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/save_pillows', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.send(JSON.stringify(pillowData));
 }
 function refreshPillowDropdown() {
   var sel = document.getElementById('recPillowId');

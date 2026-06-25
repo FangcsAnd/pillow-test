@@ -6,65 +6,91 @@
 <title>枕头压力测试系统</title>
 <style>
 :root {
-  --bg: #f5f7fa; --card: #fff; --input: #f0f2f5; --accent: #3a86ff;
-  --accent-hover: #5c9dff; --text: #2d3436; --text2: #636e72;
-  --border: #dfe6e9; --success: #00b894; --danger: #d63031; --radius: 8px;
+  --bg: #1c1c2e; --card: rgba(255,255,255,0.1); --input: rgba(255,255,255,0.08); --accent: #64d2ff;
+  --accent-hover: #90e0ff; --text: #e8e8ed; --text2: rgba(255,255,255,0.5);
+  --border: rgba(255,255,255,0.12); --success: #30d158; --danger: #ff453a; --radius: 12px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font: 13px "PingFang SC","Microsoft YaHei",sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; }
-#sidebar { width: 340px; padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; border-right: 1px solid var(--border); flex-shrink: 0; }
-.main { flex: 1; display: flex; flex-direction: column; padding: 10px; overflow: hidden; }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; }
-.card-title { font-weight: 700; color: var(--accent); margin-bottom: 6px; font-size: 13px; }
+body { font: 13px "PingFang SC","Microsoft YaHei",sans-serif; color: var(--text); height: 100vh; display: flex; 
+  background: linear-gradient(180deg, #1a1a3e 0%, #2d1b4e 40%, #1c3a5c 70%, #15202d 100%);
+  position:relative; overflow:hidden; }
+#sidebar { width: 340px; padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; border-right: 1px solid var(--border); flex-shrink: 0; position:relative; z-index:1; }
+.main { flex: 1; display: flex; flex-direction: column; padding: 10px; overflow: hidden; position:relative; z-index:1; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+.card-title { font-weight: 600; color: rgba(255,255,255,0.65); margin-bottom: 8px; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
 .row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.row label { color: var(--text2); font-size: 12px; min-width: 70px; text-align: right; }
-input, select, button { font: inherit; border-radius: 5px; border: 1px solid var(--border); padding: 5px 8px; background: var(--input); color: var(--text); outline: none; }
-input:focus, select:focus { border-color: var(--accent); }
-button { cursor: pointer; font-weight: 600; border: none; padding: 7px 14px; color: #fff; }
-input[readonly] { background: #f8f9fb; color: var(--text2); }
+.row label { color: rgba(255,255,255,0.5); font-size: 12px; min-width: 72px; text-align: right; flex-shrink: 0; }
+.row input, .row select, .row textarea { flex: 1; }
+/* Form elements */
+input, select, textarea { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #fff; outline: none; transition: all 0.2s; }
+input:focus, select:focus, textarea:focus { border-color: rgba(100,210,255,0.5); background: rgba(255,255,255,0.12); box-shadow: 0 0 0 3px rgba(100,210,255,0.1); }
+input[readonly] { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.45); }
+select { -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff80' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+select option { background: #1c1c2e; color: #fff; }
+input[type="checkbox"] { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 5px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.08); cursor: pointer; padding: 0; margin: 0; position: relative; }
+input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 5px; top: 2px; width: 5px; height: 9px; border: solid #000; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+input[type="range"] { -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); padding: 0; border: none; flex: 1; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.3); cursor: pointer; }
+/* Buttons */
+button { font: inherit; cursor: pointer; font-weight: 600; border: none; border-radius: 10px; padding: 7px 14px; color: #fff; transition: all 0.2s; }
+button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 .btn-connect { background: var(--success); }
-.btn-connect:hover { background: #00d2a4; }
 .btn-connect.active { background: var(--danger); }
-.btn-connect.active:hover { background: #e74c3c; }
-.btn-primary { background: var(--accent); }
+.btn-primary { background: var(--accent); color: #000; }
 .btn-primary:hover { background: var(--accent-hover); }
-.btn-sm { padding: 3px 8px; font-size: 11px; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-input[type="range"] { -webkit-appearance: none; height: 5px; border-radius: 3px; background: var(--input); flex: 1; border: none; padding: 0; }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; }
-input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent); }
+.btn-sm { padding: 4px 10px; font-size: 10px; border-radius: 6px; }
+/* Param grid */
 .param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
 .param-item { display: flex; align-items: center; font-size: 11px; }
-.param-item .pn { color: var(--text2); min-width: 68px; }
+.param-item .pn { color: rgba(255,255,255,0.5); min-width: 68px; }
 .param-item .pv { color: var(--accent); font-weight: 700; }
-.param-item .help { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: #dfe6e9; color: #636e72; font-size: 9px; cursor: pointer; border: none; margin-right: 2px; }
+.param-item .help { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); font-size: 10px; cursor: pointer; border: none; margin-right: 3px; flex-shrink: 0; line-height: 1; padding: 0; transition: all 0.2s; }
+.param-item .help:hover { background: var(--accent); color: #000; }
+/* Help popup */
+#helpPopup { display: none; position: fixed; z-index: 200; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px 14px; font-size: 12px; max-width: 220px; color: #000; box-shadow: 0 4px 16px rgba(0,0,0,0.2); pointer-events: none; }
+/* Background */
+.moon-bg { position:fixed; top:20px; right:50px; width:60px; height:60px; border-radius:50%; background:radial-gradient(circle at 30% 30%,#ffeaa7,#fdcb6e); box-shadow:0 0 30px rgba(253,203,110,0.3); animation:moonB 4s ease-in-out infinite; z-index:0; pointer-events:none; }
+@keyframes moonB { 0%,100%{box-shadow:0 0 30px rgba(253,203,110,0.3)} 50%{box-shadow:0 0 50px rgba(253,203,110,0.5)} }
+.s-bg { position:fixed; border-radius:50%; background:#fff; animation:twinkleB var(--d) ease-in-out infinite; opacity:0; z-index:0; pointer-events:none; }
+@keyframes twinkleB { 0%,100%{opacity:0;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+.c-bg { position:fixed; opacity:0.06; z-index:0; pointer-events:none; animation:cloudB var(--d2) linear infinite; }
+@keyframes cloudB { 0%{transform:translateX(-100px)} 100%{transform:translateX(calc(100vw + 100px))} }
 .status { font-size: 11px; color: var(--text2); padding: 6px 8px; background: var(--input); border-radius: 5px; }
 .status.connected { color: var(--success); }
 .comfort-val { font-size: 10px; color: var(--accent); font-weight: 700; min-width: 16px; text-align: center; }
-.history-row:hover { background: #e8f4fc; cursor: pointer; }
-#historyCards { display: flex; gap: 6px; overflow-x: auto; padding: 6px; flex-shrink: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
-.history-row { flex-shrink: 0; width: 140px; padding: 8px 10px; font-size: 11px; border-radius: 6px; cursor: pointer; color: #fff; display: flex; flex-direction: column; gap: 2px; }
+#historyCards { display: flex; gap: 6px; overflow-x: auto; padding: 6px; flex-shrink: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); min-height: 82px; }
+.history-row { flex-shrink: 0; width: 100px; padding: 4px 6px; font-size: 9px; border-radius: 5px; cursor: pointer; color: #fff; display: flex; flex-direction: column; gap: 1px; }
+.history-row .hscore { font-size: 11px; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.history-row.great { background: linear-gradient(135deg, #00e676, #00c853); }
+.history-row.good { background: linear-gradient(135deg, #64d2ff, #3a86ff); }
+.history-row.ok { background: linear-gradient(135deg, #fdcb6e, #f59b1e); }
+.history-row.poor { background: linear-gradient(135deg, #ff7675, #e17055); }
+.history-row.bad { background: linear-gradient(135deg, #d63031, #b71c1c); }
 .history-row:hover { opacity: 0.85; }
 .history-row.active { box-shadow: 0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,0.2); }
-.history-row .hscore { font-size: 24px; font-weight: 700; }
-.history-row .hsub { font-size: 10px; opacity: 0.9; }
-.history-row.good { background: linear-gradient(135deg, #00b894, #00d2a4); }
-.history-row.ok { background: linear-gradient(135deg, #fdcb6e, #e17055); }
-.history-row.bad { background: linear-gradient(135deg, #d63031, #e17055); }
 #historyCards::-webkit-scrollbar { height: 4px; }
 #historyCards::-webkit-scrollbar-track { background: var(--input); border-radius: 2px; }
 #historyCards::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 #heatmapWrap { flex: 1; display: flex; align-items: center; justify-content: center; }
-#heatmap { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); width: 560px; height: 560px; }
+#heatmap { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal-box { background:rgba(44,44,58,0.97); border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:20px; max-width:750px; max-height:80vh; overflow-y:auto; width:90%; backdrop-filter:blur(20px); }
+.modal-box table { width:100%; border-collapse:collapse; }
+.modal-box th { padding:6px 8px; text-align:left; font-size:11px; color:rgba(255,255,255,0.5); border-bottom:1px solid rgba(255,255,255,0.1); }
+.modal-box td { padding:5px 8px; font-size:11px; color:rgba(255,255,255,0.8); border-bottom:1px solid rgba(255,255,255,0.05); }
+.modal-box tr:hover td { background:rgba(255,255,255,0.05); }
 </style>
 </head>
 <body>
 <div id="sidebar">
   <div class="card">
     <div class="card-title">串口设置</div>
-    <div class="row"><label>端口:</label><select id="portSelect"></select><button class="btn-sm" style="background:var(--input);color:var(--text);border:1px solid var(--border);" onclick="refreshPorts()">刷新</button></div>
     <div class="row"><label>波特率:</label><select id="baudSelect"><option>460800</option><option>115200</option><option>57600</option><option>38400</option><option>19200</option></select></div>
     <button id="connectBtn" class="btn-connect" style="width:100%;padding:10px;" onclick="toggleConnect()">连接</button>
+    <div id="serialHint" style="font-size:10px;color:var(--text2);margin-top:4px;">需 Chrome/Edge，macOS 安装 CH340 驱动</div>
   </div>
 
   <div class="card">
@@ -79,12 +105,32 @@ input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent);
   </div>
 
   <div class="card">
+    <div class="card-title">初步舒适度评估</div>
+    <div id="comfortEstimate" style="text-align:center;padding:8px 0;">
+      <div style="font-size:28px;font-weight:700;color:var(--accent);" id="comfortEstScore">--</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.5);" id="comfortEstLabel">等待传感器数据</div>
+      <div style="margin-top:4px;font-size:9px;color:rgba(255,255,255,0.3);" id="comfortEstDetail"></div>
+    </div>
+  </div>
+  <div class="card">
     <div class="card-title">枕头测试参数</div>
     <div class="param-grid" id="paramsGrid"></div>
   </div>
 
   <div class="card">
-    <div class="card-title">被试信息</div>
+    <div class="card-title">压力区域占比</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <canvas id="donutChart" width="140" height="140"></canvas>
+      <div style="display:flex;gap:14px;font-size:10px;color:rgba(255,255,255,0.5);">
+        <span style="color:#64d2ff;">&#9679; 头部 <span id="dlHead">0</span>%</span>
+        <span style="color:#ffeaa7;">&#9679; 颈部 <span id="dlNeck">0</span>%</span>
+        <span style="color:#ff7675;">&#9679; 肩部 <span id="dlShoulder">0</span>%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">被试信息 <button class="btn-sm" onclick="showAllUsers()" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:10px;">查看全部</button></div>
     <div class="row"><label>被试ID:</label><select id="recUserId" style="flex:1" onchange="onUserSelect()"><option value="">自定义</option></select></div>
     <div class="row"><label>姓名:</label><input style="flex:1" id="recName" readonly></div>
     <div class="row"><label>性别:</label><input style="flex:1" id="recGender" readonly></div>
@@ -92,13 +138,13 @@ input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent);
     <div class="row"><label>身高:</label><input style="flex:1" id="recHeight" readonly><span style="font-size:10px;color:var(--text2);">cm</span></div>
     <div class="row"><label>体重:</label><input style="flex:1" id="recWeight" readonly><span style="font-size:10px;color:var(--text2);">kg</span></div>
     <div class="row"><label>肩宽:</label><input style="flex:1" id="recShoulder" readonly><span style="font-size:10px;color:var(--text2);">cm</span></div>
-    <div class="row"><label>颈曲:</label><canvas id="neckCurveChart" width="90" height="180" style="border:1px solid var(--border);border-radius:4px;background:#fff;margin-left:4px;"></canvas></div>
+    <div class="row"><label>颈曲:</label><canvas id="neckCurveChart" width="90" height="200" style="border:1px solid var(--border);border-radius:4px;background:transparent;margin-left:4px;"></canvas></div>
     <div class="row"><label>病史:</label><input style="flex:1" id="recNeckHistory" readonly></div>
     <div class="row"><label>颈痛:</label><input style="flex:1" id="recNeckPain" readonly></div>
   </div>
 
   <div class="card">
-    <div class="card-title">枕头信息</div>
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">枕头信息 <button class="btn-sm" onclick="showAllPillows()" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:10px;">查看全部</button></div>
     <div class="row"><label>枕头ID:</label><select id="recPillowId" style="flex:1" onchange="onPillowSelect()"><option value="">自定义</option></select></div>
     <div class="row"><label>品牌:</label><input style="flex:1" id="recBrand" readonly></div>
     <div class="row"><label>材质:</label><input style="flex:1" id="recMaterial" readonly></div>
@@ -114,17 +160,17 @@ input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent);
 
   <div class="card">
     <div class="card-title">舒适度评价</div>
-    <div class="row"><label>整体(-10~10):</label><input type="range" id="comfort_overall" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortOverallVal">0</span></div>
-    <div class="row"><label>仰睡(-10~10):</label><input type="range" id="comfort_supine" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortSupineVal">0</span></div>
-    <div class="row"><label>侧睡(-10~10):</label><input type="range" id="comfort_side" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortSideVal">0</span></div>
-    <div class="row"><label>颈部支撑:</label><input type="range" id="comfort_neck" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortNeckVal">0</span></div>
-    <div class="row"><label>头部包裹:</label><input type="range" id="comfort_head" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortHeadVal">0</span></div>
-    <div class="row"><label>压力均匀:</label><input type="range" id="comfort_even" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortEvenVal">0</span></div>
-    <div class="row"><label>入睡容易:</label><input type="range" id="comfort_fall" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortFallVal">0</span></div>
-    <div class="row"><label>翻身顺畅:</label><input type="range" id="comfort_turn" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortTurnVal">0</span></div>
-    <div class="row"><label>压迫感:</label><input type="range" id="comfort_pressure" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortPressureVal">0</span></div>
-    <div class="row"><label>闷热感:</label><input type="range" id="comfort_heat" min="-10" max="10" value="0" oninput="updateComfortTotal()"><span class="comfort-val" id="comfortHeatVal">0</span></div>
-    <div class="row"><label style="font-weight:700;color:var(--accent);">综合:</label><span id="comfortTotal" style="font-size:18px;font-weight:700;color:var(--accent);">0</span></div>
+    <div class="row"><label>整体舒适度:</label><select id="comfort_overall" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label>仰睡舒适度:</label><select id="comfort_supine" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label>侧睡舒适度:</label><select id="comfort_side" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label>颈部支撑感:</label><select id="comfort_neck" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label>头部包裹感:</label><select id="comfort_head" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label>压力均匀度:</label><select id="comfort_even" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label>入睡容易度:</label><select id="comfort_fall" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label>翻身顺畅度:</label><select id="comfort_turn" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label>压迫感:</label><select id="comfort_pressure" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label>闷热感:</label><select id="comfort_heat" onchange="updateComfortTotal()"><option value="1">很差(垃圾)</option><option value="2">差(不太舒服)</option><option value="3" selected>能接受</option><option value="4">不错(还不错)</option><option value="5">超出期待(惊喜)</option></select></div>
+    <div class="row"><label style="font-weight:700;color:var(--accent);">综合:</label><span id="comfortTotal" style="font-size:18px;font-weight:700;color:var(--accent);">能接受</span></div>
   </div>
 
   <div class="card">
@@ -133,7 +179,8 @@ input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent);
     <div class="row"><label>备注:</label><input style="flex:1" id="recNote" placeholder="可选填"></div>
     <div style="display:flex;gap:6px;">
       <button id="recordBtn" class="btn-primary" style="flex:1;padding:10px;" onclick="recordData()" disabled>记录数据</button>
-      <button class="btn-primary" style="padding:10px;" onclick="exportData()">导出</button>
+      <button class="btn-primary" style="padding:10px;" onclick="exportCSV()">导出</button>
+      <button class="btn-primary" style="padding:10px;" onclick="window.open('recommend.html','_blank')">推荐</button>
     </div>
   </div>
 
@@ -141,51 +188,78 @@ input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--accent);
 </div>
 
 <div class="main">
-  <div style="font-weight:700;color:var(--accent);font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:8px;">历史记录 <span id="historyCount" style="color:var(--text2);font-size:11px;">0</span>条 <button class="btn-sm" onclick="refreshHistory()" style="background:var(--accent);font-size:10px;">刷新</button> <button class="btn-sm" onclick="resetToTest()" style="background:var(--success);font-size:10px;">新测试</button></div>
+  <div style="font-weight:700;color:var(--accent);font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:8px;">历史记录 <span id="historyCount" style="color:var(--text2);font-size:11px;">0</span>条 <button class="btn-sm" onclick="refreshHistory()" style="background:var(--accent);font-size:10px;">刷新</button> <button class="btn-sm" onclick="resetToTest()" style="background:var(--success);font-size:10px;">新测试</button> <button class="btn-sm" onclick="loadSharedRecords()" style="background:var(--text2);font-size:10px;">加载共享</button> <button class="btn-sm" onclick="showCrossMatrix()" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:10px;">交叉测试</button> <button class="btn-sm" onclick="importHistory()" style="background:var(--text2);font-size:10px;">导入</button> <button class="btn-sm" onclick="exportHistory()" style="background:var(--text2);font-size:10px;">导出</button></div>
   <div id="historyCards"></div>
   <div id="heatmapWrap"><canvas id="heatmap" width="500" height="500"></canvas></div>
 </div>
 
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<div id="helpPopup"></div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-box" id="modalBox" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span id="modalTitle" style="font-weight:600;font-size:14px;color:#fff;"></span>
+      <button class="btn-sm" onclick="closeModal()" style="background:rgba(255,255,255,0.1);color:#fff;">关闭</button>
+    </div>
+    <div id="modalContent"></div>
+  </div>
+</div>
 <script>
-const SIZE = 16;
-let socket = io();
-let currentGrid = Array.from({length: SIZE}, () => Array(SIZE).fill(0));
-let smooth = true, smoothFactor = 0.3, showValues = true, isConnected = false;
-let recording = false, recordCountdown = 0, recordTimer = null, allRecords = [];
-let pillowData = [], userData = [];
-let currentNeckCurve = '[]';
-const canvas = document.getElementById('heatmap');
-const ctx = canvas.getContext('2d');
+var SIZE = 16;
+var currentGrid = [];
+var smoothEnabled = true;
+var smoothFactor = 0.3;
+var showValues = true;
+var isConnected = false;
+var isRecording = false;
+var recordSamples = [];
+var recordTimer = null;
+var recordCountdown = 3.0;
+var pillowData = [];
+var userData = [];
+var currentNeckCurve = '[]';
+var serialPort = null;
+var serialReader = null;
+var serialReadCancelled = false;
+var serialBuffer = new Uint8Array(0);
+var canvas = document.getElementById('heatmap');
+var ctx = canvas.getContext('2d');
+var historyRecords = [];
+
+(function() {
+  for (var i = 0; i < SIZE; i++) { currentGrid[i] = []; for (var j = 0; j < SIZE; j++) { currentGrid[i][j] = 0; } }
+})();
 
 function getColor(v) {
-  v = Math.max(0, Math.min(255, v)); let r, g, b;
+  v = Math.max(0, Math.min(255, v));
+  var r, g, b;
   if (v < 64) { r = Math.round(220 + 35*v/63); g = Math.round(230 + 25*v/63); b = Math.round(245 - 235*v/63); }
-  else if (v < 128) { let t = (v-64)/63; r = Math.round(255-137*t); g = Math.round(255-73*t); b = Math.round(10+100*t); }
-  else if (v < 192) { let t = (v-128)/63; r = Math.round(118+137*t); g = Math.round(182-182*t); b = Math.round(110-110*t); }
-  else { let t = (v-192)/63; r = 255; g = Math.round(0+40*t); b = Math.round(0+80*t); }
+  else if (v < 128) { var t = (v-64)/63; r = Math.round(255-137*t); g = Math.round(255-73*t); b = Math.round(10+100*t); }
+  else if (v < 192) { var t = (v-128)/63; r = Math.round(118+137*t); g = Math.round(182-182*t); b = Math.round(110-110*t); }
+  else { var t = (v-192)/63; r = 255; g = Math.round(0+40*t); b = Math.round(0+80*t); }
   return 'rgb(' + r + ',' + g + ',' + b + ')';
 }
 
 function drawHeatmap(data) {
-  let size = 560;
+  var size = 560;
   canvas.width = size;
   canvas.height = size;
-  let m = 12, gs = 500, ox = (size - gs)/2, oy = 16;
-  let cs = gs / SIZE;
+  var m = 12, gs = 500, ox = (size - gs)/2, oy = 16;
+  var cs = gs / SIZE;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let i = 0; i < SIZE; i++)
-    for (let j = 0; j < SIZE; j++) {
+  for (var i = 0; i < SIZE; i++) {
+    for (var j = 0; j < SIZE; j++) {
       ctx.fillStyle = getColor(Math.round(data[i][j]));
       ctx.fillRect(ox + j*cs, oy + i*cs, cs-1, cs-1);
     }
+  }
   ctx.strokeStyle = 'rgba(180,190,200,0.3)'; ctx.lineWidth = 0.5;
-  for (let i = 0; i <= SIZE; i++) {
-    let x = ox + i*cs, y = oy + i*cs;
+  for (var i = 0; i <= SIZE; i++) {
+    var x = ox + i*cs, y = oy + i*cs;
     ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x, oy + gs); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + gs, y); ctx.stroke();
   }
-  let headY = oy + gs*10/SIZE, neckY = oy + gs*13/SIZE;
+  var headY = oy + gs*10/SIZE, neckY = oy + gs*13/SIZE;
   ctx.strokeStyle = 'rgba(116,185,255,0.5)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(ox, headY); ctx.lineTo(ox + gs, headY); ctx.stroke();
   ctx.strokeStyle = 'rgba(255,118,117,0.5)';
@@ -195,200 +269,112 @@ function drawHeatmap(data) {
   ctx.fillStyle = 'rgba(255,118,117,0.8)'; ctx.fillText('颈', ox+3, headY+11);
   ctx.fillText('肩', ox+3, neckY+11);
   if (showValues && cs >= 18) {
-    let fs = Math.max(7, Math.min(Math.floor(cs*0.35), 12));
+    var fs = Math.max(7, Math.min(Math.floor(cs*0.35), 12));
     ctx.font = 'bold ' + fs + 'px "PingFang SC"';
-    for (let i = 0; i < SIZE; i++)
-      for (let j = 0; j < SIZE; j++) {
-        let val = Math.round(data[i][j]); if (val < 5) continue;
+    for (var i = 0; i < SIZE; i++) {
+      for (var j = 0; j < SIZE; j++) {
+        var val = Math.round(data[i][j]); if (val < 5) continue;
         ctx.fillStyle = val > 128 ? 'rgba(255,255,255,0.9)' : 'rgba(30,30,30,0.8)';
         ctx.fillText(val, ox + j*cs + 2, oy + i*cs + cs*0.6);
       }
+    }
   }
-  let ly = oy + gs + 10;
-  for (let i = 0; i < gs; i++) { ctx.fillStyle = getColor(Math.floor(i*255/gs)); ctx.fillRect(ox+i, ly, 1, 10); }
+  var ly = oy + gs + 10;
+  for (var i = 0; i < gs; i++) {
+    ctx.fillStyle = getColor(Math.floor(i*255/gs));
+    ctx.fillRect(ox+i, ly, 1, 10);
+  }
   ctx.font = '9px "PingFang SC"'; ctx.fillStyle = '#636e72';
   ctx.fillText('0', ox, ly + 22); ctx.fillText('255', ox + gs - 20, ly + 22);
 }
 
-socket.on('sensor_data', function(msg) {
-  if (smooth) { for (let i = 0; i < SIZE; i++) for (let j = 0; j < SIZE; j++) currentGrid[i][j] = Math.round(currentGrid[i][j]*(1-smoothFactor) + msg.grid[i][j]*smoothFactor); }
-  else currentGrid = msg.grid;
-  drawHeatmap(currentGrid);
-  updateParams(msg.params);
-});
-
-const paramHelps = {
-  '最大压力:': '传感器检测到的最大压力值(0-255)', '平均压力:': '所有接触点压力的平均值',
-  '接触面积:': '有压力触发的传感器点占比', '均匀度:': '压力分布标准差，越小越均匀',
-  '峰值位置:': '压力最大点的X,Y坐标', '峰值压力:': '局部压力峰值，越高越硌',
-  '压力集中指数:': '压力集中程度，越高越不适', '95百分位压力:': '判断局部会不会压得疼、血液循环受阻',
-  '压力梯度:': '相邻点压力差均值，反映陡峭度', '头部承力:': '头部区域(0-10行)占总压力比',
-  '颈椎承力:': '颈椎区域(10-13行)占总压力比', '肩膀承力:': '肩膀区域(13-16行)占总压力比',
-  '颈部连续性:': '颈部区域压力标准差，越小越均匀', '颈部空隙:': '检测颈部是否有低压力区域',
-  '压力中心:': '压力中心的X,Y坐标位置(%)',
-};
-
-function updateParams(params) {
-  let map = [
-    ['max','最大压力:',params.max],['avg','平均压力:',params.avg],['area','接触面积:',params.area+'%'],
-    ['std','均匀度:',params.std],['peak_pos','峰值位置:',params.peak_pos],['peak_val','峰值压力:',params.peak_val],
-    ['concentration','压力集中指数:',params.concentration],['p95','95百分位压力:',params.p95],
-    ['gradient','压力梯度:',params.gradient],['head_ratio','头部承力:',params.head_ratio+'%'],
-    ['neck_ratio','颈椎承力:',params.neck_ratio+'%'],['shoulder_ratio','肩膀承力:',params.shoulder_ratio+'%'],
-    ['neck_continuity','颈部连续性:',params.neck_continuity],['neck_gap','颈部空隙:',params.neck_gap],
-    ['center','压力中心:',params.center],
-  ];
-  map.forEach(function(m) { var el = document.getElementById('pv_'+m[0]); if (el) el.textContent = typeof m[2]==='number' ? Math.round(m[2]) : m[2]; });
+function calculateMean(arr) {
+  var sum = 0; for (var i = 0; i < arr.length; i++) sum += arr[i];
+  return arr.length > 0 ? sum / arr.length : 0;
 }
 
-function buildParamGrid() {
-  var items = [
-    ['max','最大压力:'],['avg','平均压力:'],['area','接触面积:'],['std','均匀度:'],
-    ['peak_pos','峰值位置:'],['peak_val','峰值压力:'],['concentration','压力集中指数:'],
-    ['p95','95百分位压力:'],['gradient','压力梯度:'],['head_ratio','头部承力:'],
-    ['neck_ratio','颈椎承力:'],['shoulder_ratio','肩膀承力:'],['neck_continuity','颈部连续性:'],
-    ['neck_gap','颈部空隙:'],['center','压力中心:'],
-  ];
-  var html = '';
-  items.forEach(function(m) {
-    var tip = paramHelps[m[1]] || '';
-    html += '<div class="param-item"><button class="help" onclick="alert(this.parentElement.querySelector(\'.pn\').textContent.replace(\':\',\'\'))">?</button><span class="pn">'+m[1]+'</span><span class="pv" id="pv_'+m[0]+'">0</span></div>';
-  });
-  document.getElementById('paramsGrid').innerHTML = html;
-}
-buildParamGrid();
-
-async function refreshPorts() {
-  var r = await fetch('/api/ports'); var d = await r.json();
-  document.getElementById('portSelect').innerHTML = d.ports.map(function(p) { return '<option>'+p+'</option>'; }).join('');
+function calculateStd(arr, mean) {
+  if (arr.length < 2) return 0;
+  var sumSq = 0; for (var i = 0; i < arr.length; i++) sumSq += (arr[i] - mean) * (arr[i] - mean);
+  return Math.sqrt(sumSq / arr.length);
 }
 
-async function toggleConnect() {
-  var btn = document.getElementById('connectBtn');
-  if (isConnected) {
-    await fetch('/api/disconnect', {method:'POST'});
-    btn.textContent = '连接'; btn.classList.remove('active'); isConnected = false;
-    document.getElementById('status').textContent = '未连接'; document.getElementById('status').classList.remove('connected');
-    document.getElementById('recordBtn').disabled = true;
-  } else {
-    var port = document.getElementById('portSelect').value, baud = document.getElementById('baudSelect').value;
-    await fetch('/api/connect', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({port:port, baudrate:baud})});
-    btn.textContent = '断开'; btn.classList.add('active'); isConnected = true;
-    document.getElementById('status').textContent = '已连接 '+port+' @ '+baud;
-    document.getElementById('status').classList.add('connected');
-    document.getElementById('recordBtn').disabled = false;
+function calculateParams(grid) {
+  var flat = [];
+  for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++) flat.push(grid[i][j]);
+  var maxVal = -1, maxCol = -1, maxRow = -1;
+  for (var i = 0; i < flat.length; i++) { if (flat[i] > maxVal) { maxVal = flat[i]; maxRow = Math.floor(i / SIZE); maxCol = i % SIZE; } }
+  var avgVal = calculateMean(flat);
+  var cp = 0; for (var i = 0; i < flat.length; i++) if (flat[i] > 10) cp++;
+  var contactArea = Math.round(cp / (SIZE * SIZE) * 100);
+  var stdVal = calculateStd(flat, avgVal);
+  var peakPos = '(' + maxCol + ',' + maxRow + ')';
+  var peakVal = maxVal;
+
+  var nonzero = []; for (var i = 0; i < flat.length; i++) if (flat[i] > 0) nonzero.push(flat[i]);
+  var concentration = 0; var p95 = 0;
+  if (nonzero.length > 0) {
+    var sumSq = 0, sum = 0;
+    for (var i = 0; i < nonzero.length; i++) { sumSq += nonzero[i] * nonzero[i]; sum += nonzero[i]; }
+    concentration = Math.round(sumSq / Math.max(sum * sum, 1) * 100);
+    nonzero.sort(function(a,b){return b-a;});
+    var p95Count = Math.max(1, Math.floor(nonzero.length * 0.05));
+    var p95Sum = 0; for (var i = 0; i < p95Count; i++) p95Sum += nonzero[i];
+    p95 = Math.round(p95Sum / p95Count);
   }
-}
 
-function onSmoothChange() { smooth = document.getElementById('smooth').checked; }
-function onSmoothRange() { smoothFactor = document.getElementById('smoothRange').value/100; document.getElementById('smoothVal').textContent = document.getElementById('smoothRange').value + '%'; }
-document.getElementById('showVals').addEventListener('change', function(){ showValues = this.checked; drawHeatmap(currentGrid); });
-
-async function loadPillows() {
-  var r = await fetch('/api/pillows'); var d = await r.json();
-  pillowData = d.pillows || [];
-  var sel = document.getElementById('recPillowId');
-  pillowData.forEach(function(p) { var o = document.createElement('option'); o.value = p.id; o.textContent = p.id + ' - ' + p.brand; sel.appendChild(o); });
-}
-
-async function loadUsers() {
-  var r = await fetch('/api/users'); var d = await r.json();
-  userData = d.users || [];
-  var sel = document.getElementById('recUserId');
-  userData.forEach(function(u) { var o = document.createElement('option'); o.value = u.id; o.textContent = u.id + ' - ' + u.name; sel.appendChild(o); });
-}
-
-function onUserSelect() {
-  var id = document.getElementById('recUserId').value;
-  var user = userData.find(function(u) { return u.id === id; });
-  var fields = ['recName','recGender','recAge','recHeight','recWeight','recShoulder','recNeckHistory','recNeckPain'];
-  if (user) {
-    document.getElementById('recName').value = user.name;
-    document.getElementById('recGender').value = user.gender;
-    document.getElementById('recAge').value = user.age;
-    document.getElementById('recHeight').value = user.height;
-    document.getElementById('recWeight').value = user.weight;
-    document.getElementById('recShoulder').value = user.shoulder_width;
-    document.getElementById('recNeckHistory').value = user.neck_history;
-    document.getElementById('recNeckPain').value = user.neck_pain;
-    var curve = []; try { curve = JSON.parse(user.neck_curve); } catch(e) {}
-    currentNeckCurve = user.neck_curve || '[]';
-    drawNeckCurve(curve);
-    fields.forEach(function(f) { document.getElementById(f).readOnly = true; });
-  } else {
-    fields.forEach(function(f) { document.getElementById(f).value = ''; document.getElementById(f).readOnly = false; });
-  drawNeckCurve([]);
-  currentNeckCurve = '[]';
+  var gradientSum = 0, gradientCount = 0;
+  for (var i = 0; i < SIZE; i++) {
+    for (var j = 0; j < SIZE - 1; j++) { gradientSum += Math.abs(grid[i][j] - grid[i][j+1]); gradientCount++; }
+    if (i < SIZE - 1) {
+      for (var j = 0; j < SIZE; j++) { gradientSum += Math.abs(grid[i][j] - grid[i+1][j]); gradientCount++; }
+    }
   }
-}
+  var gradient = Math.round(gradientSum / Math.max(gradientCount, 1));
 
-function drawNeckCurve(data) {
-  var canvas = document.getElementById('neckCurveChart');
-  var ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (!data || data.length < 2) return;
-  var w = canvas.width - 20, h = canvas.height - 20, ox = 18, oy = 4;
-  var maxVal = Math.max.apply(null, data);
-  if (maxVal === 0) return;
-  ctx.font = '8px "PingFang SC"'; ctx.fillStyle = '#636e72'; ctx.strokeStyle = '#dfe6e9'; ctx.lineWidth = 0.5;
-  var stepY = h / (data.length - 1);
-  for (var i = 0; i < data.length; i += Math.max(1, Math.floor(data.length/5))) {
-    var y = oy + i*stepY;
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-    ctx.fillText('C'+(i+1), 2, y+3);
-  }
-  for (var t = 0; t <= 4; t++) {
-    var v = Math.round(maxVal*t/4);
-    var x = ox + (w*(4-t)/4);
-    ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x, oy+h); ctx.stroke();
-    ctx.fillText(v, x-6, oy+h+8);
-  }
-  ctx.strokeStyle = '#3a86ff'; ctx.lineWidth = 1.5; ctx.beginPath();
-  data.forEach(function(v, i) {
-    var x = ox + w - (v/maxVal)*w, y = oy + i*stepY;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-  ctx.fillStyle = 'rgba(58,134,255,0.12)'; ctx.beginPath();
-  ctx.moveTo(ox+w, oy);
-  data.forEach(function(v, i) { ctx.lineTo(ox+w - (v/maxVal)*w, oy + i*stepY); });
-  ctx.lineTo(ox+w, oy+h); ctx.closePath(); ctx.fill();
-}
+  var headSum = 0, neckSum = 0, shoulderSum = 0;
+  for (var i = 0; i < 10; i++) for (var j = 0; j < SIZE; j++) headSum += grid[i][j];
+  for (var i = 10; i < 13; i++) for (var j = 0; j < SIZE; j++) neckSum += grid[i][j];
+  for (var i = 13; i < SIZE; i++) for (var j = 0; j < SIZE; j++) shoulderSum += grid[i][j];
+  var total = headSum + neckSum + shoulderSum;
+  var headRatio = 0, neckRatio = 0, shoulderRatio = 0;
+  if (total > 0) { headRatio = Math.round(headSum / total * 100); neckRatio = Math.round(neckSum / total * 100); shoulderRatio = Math.round(shoulderSum / total * 100); }
 
-function onPillowSelect() {
-  var id = document.getElementById('recPillowId').value;
-  var p = pillowData.find(function(pp) { return pp.id === id; });
-  var fields = ['recBrand','recMaterial','recPillowSize','recHeadHeight','recNeckHeight','recSideHeight','recCenterHardness','recNeckHardness','recEdgeHardnessL','recEdgeHardnessR'];
-  if (p) {
-    document.getElementById('recBrand').value = p.brand;
-    document.getElementById('recMaterial').value = p.material;
-    document.getElementById('recPillowSize').value = p.size;
-    document.getElementById('recHeadHeight').value = p.head_height;
-    document.getElementById('recNeckHeight').value = p.neck_height;
-    document.getElementById('recSideHeight').value = p.side_height;
-    document.getElementById('recCenterHardness').value = p.center_hardness;
-    document.getElementById('recNeckHardness').value = p.neck_hardness;
-    document.getElementById('recEdgeHardnessL').value = p.edge_hardness_l;
-    document.getElementById('recEdgeHardnessR').value = p.edge_hardness_r;
-    fields.forEach(function(f) { document.getElementById(f).readOnly = true; });
-  } else {
-    fields.forEach(function(f) { document.getElementById(f).value = ''; document.getElementById(f).readOnly = false; });
+  var neckVals = [];
+  for (var i = 10; i < 13; i++) for (var j = 0; j < SIZE; j++) neckVals.push(grid[i][j]);
+  var neckContinuity = Math.round(calculateStd(neckVals, calculateMean(neckVals)));
+
+  var xCoords = [], yCoords = [];
+  for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++) if (grid[i][j] > 10) { xCoords.push(j); yCoords.push(i); }
+  var cx = 0, cy = 0;
+  if (xCoords.length > 0) { cx = Math.round(calculateMean(xCoords) / SIZE * 100); cy = Math.round(calculateMean(yCoords) / SIZE * 100); }
+  var center = cx + '%,' + cy + '%';
+
+  var neckGap = '无';
+  if (xCoords.length >= 4) {
+    var midRowSum = 0, bottomRowSum = 0;
+    for (var j = 0; j < SIZE; j++) { midRowSum += grid[7][j]; bottomRowSum += grid[15][j]; }
+    if (midRowSum < bottomRowSum * 0.5) neckGap = '有';
   }
+
+  return {
+    max: maxVal, avg: Math.round(avgVal), area: contactArea, std: Math.round(stdVal),
+    peak_pos: peakPos, peak_val: peakVal, concentration: concentration,
+    p95: p95, gradient: gradient, head_ratio: headRatio,
+    neck_ratio: neckRatio, shoulder_ratio: shoulderRatio,
+    neck_continuity: neckContinuity, neck_gap: neckGap, center: center
+  };
 }
 
 function updateComfortTotal() {
-  var w = { overall:20, neck:15, head:10, supine:15, side:15, even:5, fall:5, turn:5, pressure:-5, heat:-5 };
-  var ids = { overall:'comfort_overall', neck:'comfort_neck', head:'comfort_head', supine:'comfort_supine', side:'comfort_side', even:'comfort_even', fall:'comfort_fall', turn:'comfort_turn', pressure:'comfort_pressure', heat:'comfort_heat' };
-  var vids = { overall:'comfortOverallVal', neck:'comfortNeckVal', head:'comfortHeadVal', supine:'comfortSupineVal', side:'comfortSideVal', even:'comfortEvenVal', fall:'comfortFallVal', turn:'comfortTurnVal', pressure:'comfortPressureVal', heat:'comfortHeatVal' };
+  var w = { overall:45, supine:25, side:25, neck:2, head:1, even:1, fall:0, turn:0, pressure:1, heat:0 };
+  var ids = { overall:'comfort_overall', supine:'comfort_supine', side:'comfort_side', neck:'comfort_neck', head:'comfort_head', even:'comfort_even', fall:'comfort_fall', turn:'comfort_turn', pressure:'comfort_pressure', heat:'comfort_heat' };
   var total = 0, tw = 0;
-  for (var k in w) {
-    var v = parseInt(document.getElementById(ids[k]).value);
-    document.getElementById(vids[k]).textContent = v;
-    total += v * w[k]; tw += Math.abs(w[k]);
-  }
-  document.getElementById('comfortTotal').textContent = tw > 0 ? Math.round(total/tw) : 0;
+  for (var k in w) { var v = parseInt(document.getElementById(ids[k]).value); total += v * w[k]; tw += w[k]; }
+  var score = tw > 0 ? total / tw : 3;
+  var label = score < 1.8 ? '很差(垃圾)' : (score < 2.6 ? '差(不太舒服)' : (score < 3.4 ? '能接受' : (score < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
+  document.getElementById('comfortTotal').textContent = label;
 }
-
 function getComfortData() {
   return {
     comfort_overall: parseInt(document.getElementById('comfort_overall').value),
@@ -401,30 +387,501 @@ function getComfortData() {
     comfort_turn: parseInt(document.getElementById('comfort_turn').value),
     comfort_pressure: parseInt(document.getElementById('comfort_pressure').value),
     comfort_heat: parseInt(document.getElementById('comfort_heat').value),
-    comfort_total: parseInt(document.getElementById('comfortTotal').textContent),
+    comfort_total: 0
   };
+}
+function computeComfortLabel(c) {
+  var w = { overall:45, supine:25, side:25, neck:2, head:1, even:1, fall:0, turn:0, pressure:1, heat:0 };
+  var total = 0, tw = 0;
+  for (var k in w) { var v = convertOldScore(c['comfort_' + k]); total += v * w[k]; tw += w[k]; }
+  var score = tw > 0 ? total / tw : 3;
+  var label = score < 1.8 ? '很差(垃圾)' : (score < 2.6 ? '差(不太舒服)' : (score < 3.4 ? '能接受' : (score < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
+  return { score: score, label: label };
+}
+function convertOldScore(v) {
+  if (v === undefined || v === null) return 3;
+  // New scale 1-5: return directly
+  if (v >= 1 && v <= 5) return Math.round(v);
+  // Old -10~10 scale
+  if (v <= -5) return 1; if (v <= -1) return 2; if (v <= 3) return 3; if (v <= 7) return 4;
+  return 5;
+}
+
+function updateParams(params) {
+  var map = [
+    ['max','最大压力:',params.max],['avg','平均压力:',params.avg],['area','接触面积:',params.area+'%'],
+    ['std','均匀度:',params.std],['peak_pos','峰值位置:',params.peak_pos],['peak_val','峰值压力:',params.peak_val],
+    ['concentration','压力集中指数:',params.concentration],['p95','95百分位压力:',params.p95],
+    ['gradient','压力梯度:',params.gradient],['head_ratio','头部承力:',params.head_ratio+'%'],
+    ['neck_ratio','颈椎承力:',params.neck_ratio+'%'],['shoulder_ratio','肩膀承力:',params.shoulder_ratio+'%'],
+    ['neck_continuity','颈部连续性:',params.neck_continuity],['neck_gap','颈部空隙:',params.neck_gap],
+    ['center','压力中心:',params.center]
+  ];
+  for (var m = 0; m < map.length; m++) {
+    var el = document.getElementById('pv_'+map[m][0]);
+    if (el) el.textContent = typeof map[m][2] === 'number' ? Math.round(map[m][2]) : map[m][2];
+  }
+  document.getElementById('dlHead').textContent = params.head_ratio;
+  document.getElementById('dlNeck').textContent = params.neck_ratio;
+  document.getElementById('dlShoulder').textContent = params.shoulder_ratio;
+  drawDonutChart(params.head_ratio, params.neck_ratio, params.shoulder_ratio);
+}
+
+function drawDonutChart(headRatio, neckRatio, shoulderRatio) {
+  var canvas = document.getElementById('donutChart');
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width;
+  var h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  var total = headRatio + neckRatio + shoulderRatio;
+  if (total <= 0) return;
+  var cx = w / 2;
+  var cy = h / 2;
+  var outerR = 52;
+  var innerR = 32;
+  var segments = [
+    { ratio: headRatio, color: '#64d2ff' },
+    { ratio: neckRatio, color: '#ffeaa7' },
+    { ratio: shoulderRatio, color: '#ff7675' }
+  ];
+  var startAngle = -Math.PI / 2;
+  for (var i = 0; i < segments.length; i++) {
+    var seg = segments[i];
+    if (seg.ratio <= 0) continue;
+    var sweep = (seg.ratio / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR, startAngle, startAngle + sweep);
+    ctx.arc(cx, cy, innerR, startAngle + sweep, startAngle, true);
+    ctx.closePath();
+    ctx.fillStyle = seg.color;
+    ctx.fill();
+    if (sweep > 0.5) {
+      var midAngle = startAngle + sweep / 2;
+      var lr = (outerR + innerR) / 2;
+      var lx = cx + Math.cos(midAngle) * lr;
+      var ly = cy + Math.sin(midAngle) * lr;
+      ctx.fillStyle = '#1a1a2e';
+      ctx.font = 'bold 10px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(seg.ratio + '%', lx, ly);
+    }
+    startAngle += sweep;
+  }
+}
+
+function showParamHelp(key, btn) {
+  var p = document.getElementById('helpPopup');
+  p.innerHTML = '<span style="color:#000;font-size:12px;">' + key + '</span>';
+  p.style.display = 'block';
+  var r = btn.getBoundingClientRect();
+  p.style.left = Math.min(r.right + 6, window.innerWidth - 230) + 'px';
+  p.style.top = r.top + 'px';
+  clearTimeout(p._timer);
+  p._timer = setTimeout(function(){ p.style.display = 'none'; }, 3000);
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.classList.contains('help')) document.getElementById('helpPopup').style.display = 'none';
+}, true);
+
+function estimateComfortFromGrid(grid) {
+  var el = document.getElementById('comfortEstScore');
+  var lab = document.getElementById('comfortEstLabel');
+  var det = document.getElementById('comfortEstDetail');
+  if (!el) return;
+  
+  // Calculate metrics
+  var totalSum = 0, activePts = 0;
+  for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++) { totalSum += grid[i][j]; if (grid[i][j] > 5) activePts++; }
+  if (activePts < 10) { el.textContent = '--'; lab.textContent = '等待传感器数据'; det.textContent = ''; return; }
+  
+  var avg = totalSum / 256;
+  var maxVal = 0; for (var i=0;i<SIZE;i++) for(var j=0;j<SIZE;j++) maxVal=Math.max(maxVal,grid[i][j]);
+  
+  // Pressure uniformity (std / mean - lower is more uniform)
+  var s=0,c=0; for(var i=0;i<SIZE;i++) for(var j=0;j<SIZE;j++) {if(grid[i][j]>0){s+=Math.pow(grid[i][j]-avg,2);c++;}}
+  var std=c>0?Math.sqrt(s/c):0;
+  var uniformity = avg > 0 ? Math.min(1, avg / (std + 1)) : 0;
+  
+  // Contact area ratio (optimal ~30-50%)
+  var areaRatio = activePts / 256;
+  var areaScore = areaRatio > 0.1 && areaRatio < 0.7 ? Math.min(1, (0.4 - Math.abs(areaRatio - 0.4)) * 3) : 0;
+  
+  // Peak pressure penalty (too high = uncomfortable)
+  var peakScore = maxVal < 200 ? 1 : Math.max(0, 1 - (maxVal - 200) / 100);
+  
+  // Head/neck/shoulder balance
+  var headSum=0,neckSum=0,shoulderSum=0;
+  for(var i=0;i<10;i++) for(var j=0;j<SIZE;j++) headSum+=grid[i][j];
+  for(var i=10;i<13;i++) for(var j=0;j<SIZE;j++) neckSum+=grid[i][j];
+  for(var i=13;i<SIZE;i++) for(var j=0;j<SIZE;j++) shoulderSum+=grid[i][j];
+  var total=Math.max(headSum+neckSum+shoulderSum,1);
+  var neckRatio=neckSum/total;
+  var balanceScore = neckRatio > 0.1 && neckRatio < 0.4 ? Math.min(1, (0.25 - Math.abs(neckRatio - 0.2)) * 8) : 0;
+  
+  // Overall comfort score (0-5)
+  var score = (uniformity * 2 + areaScore * 1.5 + peakScore * 1 + balanceScore * 0.5) / 5 * 5;
+  score = Math.round(score * 10) / 10;
+  
+  var label = score >= 4 ? '不错(还不错)' : (score >= 3 ? '能接受' : (score >= 2 ? '差(不太舒服)' : '很差(垃圾)'));
+  el.textContent = score.toFixed(1);
+  el.style.color = score >= 3.5 ? '#30d158' : (score >= 2.5 ? '#fdcb6e' : '#ff453a');
+  lab.textContent = label;
+  det.textContent = '峰值' + maxVal + ' | 均匀度' + Math.round(uniformity*100) + '% | 面积' + Math.round(areaRatio*100) + '% | 颈部' + Math.round(neckRatio*100) + '%';
+}
+
+function onSensorData(grid) {
+  if (smoothEnabled) {
+    for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++)
+      currentGrid[i][j] = Math.round(currentGrid[i][j]*(1-smoothFactor) + grid[i][j]*smoothFactor);
+  } else {
+    for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++) currentGrid[i][j] = grid[i][j];
+  }
+  drawHeatmap(currentGrid);
+  var params = calculateParams(currentGrid);
+  updateParams(params);
+  estimateComfortFromGrid(currentGrid);
+  if (isRecording) {
+    var copy = []; for (var i = 0; i < SIZE; i++) { copy[i] = []; for (var j = 0; j < SIZE; j++) copy[i][j] = grid[i][j]; }
+    recordSamples.push(copy);
+  }
+}
+
+function appendSerialData(chunk) {
+  var newBuf = new Uint8Array(serialBuffer.length + chunk.length);
+  newBuf.set(serialBuffer, 0);
+  newBuf.set(chunk, serialBuffer.length);
+  serialBuffer = newBuf;
+  parseFrames();
+}
+
+function parseFrames() {
+  while (serialBuffer.length >= 263) {
+    var headerIdx = -1;
+    for (var i = 0; i <= serialBuffer.length - 2; i++) {
+      if (serialBuffer[i] === 0x55 && serialBuffer[i+1] === 0xAA) { headerIdx = i; break; }
+    }
+    if (headerIdx === -1) { serialBuffer = new Uint8Array(0); return; }
+    if (headerIdx > 0) serialBuffer = serialBuffer.slice(headerIdx);
+    if (serialBuffer.length < 263) return;
+
+    var frameLen = serialBuffer[2] | (serialBuffer[3] << 8);
+    if (frameLen === 257 && serialBuffer[4] === 0x01 && serialBuffer[262] === 0x5A) {
+      var grid = [];
+      for (var row = 0; row < SIZE; row++) {
+        grid[row] = [];
+        for (var col = 0; col < SIZE; col++) {
+          grid[row][col] = serialBuffer[5 + col * SIZE + row];
+        }
+      }
+      onSensorData(grid);
+      serialBuffer = serialBuffer.slice(263);
+    } else {
+      var nextIdx = -1;
+      for (var i = 1; i <= serialBuffer.length - 2; i++) {
+        if (serialBuffer[i] === 0x55 && serialBuffer[i+1] === 0xAA) { nextIdx = i; break; }
+      }
+      if (nextIdx > 0) serialBuffer = serialBuffer.slice(nextIdx);
+      else serialBuffer = serialBuffer.slice(1);
+    }
+  }
+}
+
+function startSerialRead() {
+  if (!serialPort || !serialPort.readable) return;
+  serialReadCancelled = false;
+  serialReader = serialPort.readable.getReader();
+  function readLoop() {
+    serialReader.read().then(function(result) {
+      if (result.done || serialReadCancelled) {
+        serialReader.releaseLock();
+        serialReader = null;
+        return;
+      }
+      appendSerialData(new Uint8Array(result.value));
+      readLoop();
+    }).catch(function(e) {
+      console.error('Serial read error:', e);
+      serialReader = null;
+      setDisconnected();
+    });
+  }
+  readLoop();
+}
+
+function setDisconnected() {
+  isConnected = false;
+  document.getElementById('connectBtn').textContent = '连接';
+  document.getElementById('connectBtn').classList.remove('active');
+  document.getElementById('status').textContent = '未连接';
+  document.getElementById('status').classList.remove('connected');
+  document.getElementById('recordBtn').disabled = true;
+  isRecording = false;
+  serialBuffer = new Uint8Array(0);
+}
+
+async function toggleConnect() {
+  if (!('serial' in navigator)) {
+    alert('当前浏览器不支持串口通信，请使用 Chrome 或 Edge 浏览器打开此页面。');
+    return;
+  }
+  if (isConnected) {
+    serialReadCancelled = true;
+    if (serialReader) { try { serialReader.cancel(); } catch(e){} }
+    if (serialPort) { try { serialPort.close(); } catch(e){} }
+    serialPort = null;
+    setDisconnected();
+    return;
+  }
+  try {
+    var port = await navigator.serial.requestPort();
+    var baud = parseInt(document.getElementById('baudSelect').value);
+    await port.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none' });
+    serialPort = port;
+    isConnected = true;
+    document.getElementById('connectBtn').textContent = '断开';
+    document.getElementById('connectBtn').classList.add('active');
+    document.getElementById('status').textContent = '已连接 @' + baud;
+    document.getElementById('status').classList.add('connected');
+    document.getElementById('recordBtn').disabled = false;
+    startSerialRead();
+  } catch(e) {
+    setDisconnected();
+    if (e.name !== 'AbortError') alert('串口连接失败: ' + e.message);
+  }
+}
+
+function buildParamGrid() {
+  var items = [
+    ['max','最大压力:'],['avg','平均压力:'],['area','接触面积:'],['std','均匀度:'],
+    ['peak_pos','峰值位置:'],['peak_val','峰值压力:'],['concentration','压力集中指数:'],
+    ['p95','95百分位压力:'],['gradient','压力梯度:'],['head_ratio','头部承力:'],
+    ['neck_ratio','颈椎承力:'],['shoulder_ratio','肩膀承力:'],['neck_continuity','颈部连续性:'],
+    ['neck_gap','颈部空隙:'],['center','压力中心:']
+  ];
+  var helps = {
+    '最大压力:':'传感器检测到的最大压力值(0-255)','平均压力:':'所有接触点压力的平均值',
+    '接触面积:':'有压力触发的传感器点占比','均匀度:':'压力分布标准差，越小越均匀',
+    '峰值位置:':'压力最大点的X,Y坐标','峰值压力:':'局部压力峰值，越高越硌',
+    '压力集中指数:':'压力集中程度，越高越不适','95百分位压力:':'超过95%点的压力，判断局部压迫程度',
+    '压力梯度:':'相邻点压力差均值，反映陡峭度','头部承力:':'头部区域(0-10行)占总压力比',
+    '颈椎承力:':'颈椎区域(10-13行)占总压力比','肩膀承力:':'肩膀区域(13-16行)占总压力比',
+    '颈部连续性:':'颈部区域压力标准差，越小越均匀','颈部空隙:':'检测颈部是否有低压力区域',
+    '压力中心:':'压力中心的X,Y坐标位置(%)'
+  };
+  var html = '';
+  for (var m = 0; m < items.length; m++) {
+    html += '<div class="param-item"><button class="help" onclick="showParamHelp(\'' + helps[items[m][1]] + '\', this)">?</button><span class="pn">' + items[m][1] + '</span><span class="pv" id="pv_' + items[m][0] + '">0</span></div>';
+  }
+  document.getElementById('paramsGrid').innerHTML = html;
+}
+
+function loadPillows() {
+  fetch('data/pillows.json').then(function(r){ return r.json(); }).then(function(data){
+    var saved = localStorage.getItem('pillow_pillows');
+    if (saved) {
+      pillowData = JSON.parse(saved);
+    } else {
+      pillowData = data;
+    }
+    pillowData = pillowData.filter(function(p){ return (p.material||'').indexOf('记忆棉')!==-1; });
+    refreshPillowDropdown();
+  }).catch(function(e){ console.error('Failed to load pillows:', e); });
+}
+
+function loadUsers() {
+  fetch('data/users.json').then(function(r){ return r.json(); }).then(function(data){
+    var saved = localStorage.getItem('pillow_users');
+    if (saved) {
+      userData = JSON.parse(saved);
+    } else {
+      userData = data;
+    }
+    refreshUserDropdown();
+  }).catch(function(e){ console.error('Failed to load users:', e); });
+}
+
+function onUserSelect() {
+  var id = document.getElementById('recUserId').value;
+  var user = null;
+  for (var i = 0; i < userData.length; i++) { if (userData[i].id === id) { user = userData[i]; break; } }
+  var fields = ['recName','recGender','recAge','recHeight','recWeight','recShoulder','recNeckHistory','recNeckPain'];
+  if (user) {
+    document.getElementById('recName').value = user.name || '';
+    document.getElementById('recGender').value = user.gender || '';
+    document.getElementById('recAge').value = user.age || '';
+    document.getElementById('recHeight').value = user.height || '';
+    document.getElementById('recWeight').value = user.weight || '';
+    document.getElementById('recShoulder').value = user.shoulder_width || '';
+    document.getElementById('recNeckHistory').value = user.neck_history || '';
+    document.getElementById('recNeckPain').value = user.neck_pain || '';
+    var curve = [];
+    try { curve = JSON.parse(user.neck_curve || '[]'); } catch(e) {}
+    currentNeckCurve = user.neck_curve || '[]';
+    drawNeckCurve(curve);
+    for (var f = 0; f < fields.length; f++) document.getElementById(fields[f]).readOnly = true;
+  } else {
+    for (var f = 0; f < fields.length; f++) { document.getElementById(fields[f]).value = ''; document.getElementById(fields[f]).readOnly = false; }
+    drawNeckCurve([]);
+    currentNeckCurve = '[]';
+  }
+}
+
+function drawNeckCurve(data) {
+  var can = document.getElementById('neckCurveChart');
+  var ctxN = can.getContext('2d');
+  ctxN.clearRect(0, 0, can.width, can.height);
+  if (!data || data.length < 2) return;
+  var w = can.width - 20, h = can.height - 20, ox = 18, oy = 4;
+  var maxVal = 5;
+  ctxN.font = '8px "PingFang SC"'; ctxN.fillStyle = 'rgba(255,255,255,0.5)'; ctxN.strokeStyle = 'rgba(255,255,255,0.1)'; ctxN.lineWidth = 0.5;
+  var stepY = h / (data.length - 1);
+  for (var i = 0; i < data.length; i += Math.max(1, Math.floor(data.length/5))) {
+    var y = oy + i*stepY;
+    ctxN.beginPath(); ctxN.moveTo(0, y); ctxN.lineTo(can.width, y); ctxN.stroke();
+    ctxN.fillText('C'+(i+1), 2, y+3);
+  }
+  for (var t = 0; t <= 4; t++) {
+    var v = (maxVal*t/4).toFixed(1);
+    var x = ox + (w*(4-t)/4);
+    ctxN.beginPath(); ctxN.moveTo(x, oy); ctxN.lineTo(x, oy+h); ctxN.stroke();
+    ctxN.fillText(v, x-10, oy+h+12);
+  }
+  ctxN.strokeStyle = '#64d2ff'; ctxN.lineWidth = 2; ctxN.beginPath();
+  for (var i = 0; i < data.length; i++) {
+    var x = ox + w - (data[i]/maxVal)*w, y = oy + i*stepY;
+    if (i === 0) ctxN.moveTo(x, y); else ctxN.lineTo(x, y);
+  }
+  ctxN.stroke();
+  ctxN.fillStyle = 'rgba(100,210,255,0.12)'; ctxN.beginPath();
+  ctxN.moveTo(ox+w, oy);
+  for (var i = 0; i < data.length; i++) ctxN.lineTo(ox+w - (data[i]/maxVal)*w, oy + i*stepY);
+  ctxN.lineTo(ox+w, oy+h); ctxN.closePath(); ctxN.fill();
+}
+
+function onPillowSelect() {
+  var id = document.getElementById('recPillowId').value;
+  var p = null;
+  for (var i = 0; i < pillowData.length; i++) { if (pillowData[i].id === id) { p = pillowData[i]; break; } }
+  var fields = ['recBrand','recMaterial','recPillowSize','recHeadHeight','recNeckHeight','recSideHeight','recCenterHardness','recNeckHardness','recEdgeHardnessL','recEdgeHardnessR'];
+  if (p) {
+    document.getElementById('recBrand').value = p.brand || '';
+    document.getElementById('recMaterial').value = p.material || '';
+    document.getElementById('recPillowSize').value = p.size || '';
+    document.getElementById('recHeadHeight').value = p.head_height || '';
+    document.getElementById('recNeckHeight').value = p.neck_height || '';
+    document.getElementById('recSideHeight').value = p.side_height || '';
+    document.getElementById('recCenterHardness').value = p.center_hardness || '';
+    document.getElementById('recNeckHardness').value = p.neck_hardness || '';
+    document.getElementById('recEdgeHardnessL').value = p.edge_hardness_l || '';
+    document.getElementById('recEdgeHardnessR').value = p.edge_hardness_r || '';
+    for (var f = 0; f < fields.length; f++) document.getElementById(fields[f]).readOnly = true;
+  } else {
+    for (var f = 0; f < fields.length; f++) { document.getElementById(fields[f]).value = ''; document.getElementById(fields[f]).readOnly = false; }
+  }
+}
+
+function updateComfortTotal() {
+  var w = { overall:45, supine:25, side:25, neck:2, head:1, even:1, fall:0, turn:0, pressure:1, heat:0 };
+  var ids = { overall:'comfort_overall', supine:'comfort_supine', side:'comfort_side', neck:'comfort_neck', head:'comfort_head', even:'comfort_even', fall:'comfort_fall', turn:'comfort_turn', pressure:'comfort_pressure', heat:'comfort_heat' };
+  var total = 0, tw = 0;
+  for (var k in w) { var v = parseInt(document.getElementById(ids[k]).value); total += v * w[k]; tw += w[k]; }
+  var score = tw > 0 ? total / tw : 3;
+  var label = score < 1.8 ? '很差(垃圾)' : (score < 2.6 ? '差(不太舒服)' : (score < 3.4 ? '能接受' : (score < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
+  document.getElementById('comfortTotal').textContent = label;
+}
+function getComfortData() {
+  return {
+    comfort_overall: parseInt(document.getElementById('comfort_overall').value),
+    comfort_neck: parseInt(document.getElementById('comfort_neck').value),
+    comfort_head: parseInt(document.getElementById('comfort_head').value),
+    comfort_supine: parseInt(document.getElementById('comfort_supine').value),
+    comfort_side: parseInt(document.getElementById('comfort_side').value),
+    comfort_even: parseInt(document.getElementById('comfort_even').value),
+    comfort_fall: parseInt(document.getElementById('comfort_fall').value),
+    comfort_turn: parseInt(document.getElementById('comfort_turn').value),
+    comfort_pressure: parseInt(document.getElementById('comfort_pressure').value),
+    comfort_heat: parseInt(document.getElementById('comfort_heat').value),
+    comfort_total: 0
+  };
+}
+function computeComfortLabel(c) {
+  var w = { overall:45, supine:25, side:25, neck:2, head:1, even:1, fall:0, turn:0, pressure:1, heat:0 };
+  var total = 0, tw = 0;
+  for (var k in w) { var v = convertOldScore(c['comfort_' + k]); total += v * w[k]; tw += w[k]; }
+  var score = tw > 0 ? total / tw : 3;
+  var label = score < 1.8 ? '很差(垃圾)' : (score < 2.6 ? '差(不太舒服)' : (score < 3.4 ? '能接受' : (score < 4.2 ? '不错(还不错)' : '超出期待(惊喜)')));
+  return { score: score, label: label };
+}
+function convertOldScore(v) {
+  if (v === undefined || v === null) return 3;
+  // New scale 1-5: return directly
+  if (v >= 1 && v <= 5) return Math.round(v);
+  // Old -10~10 scale
+  if (v <= -5) return 1; if (v <= -1) return 2; if (v <= 3) return 3; if (v <= 7) return 4;
+  return 5;
 }
 
 function recordData() {
-  if (recording) return;
-  recording = true; recordCountdown = 3.0;
+  if (!document.getElementById('recName').value && !document.getElementById('recUserId').value) { alert('请先选择或填写被试信息'); return; }
+  if (!document.getElementById('recPillowId').value) { alert('请先选择枕头信息'); return; }
+  isRecording = true;
+  recordCountdown = 3.0;
+  recordSamples = [];
   var btn = document.getElementById('recordBtn');
-  btn.textContent = '记录中 '+recordCountdown.toFixed(1)+'s'; btn.disabled = true;
-  fetch('/api/record/start', {method:'POST'});
+  btn.textContent = '记录中 ' + recordCountdown.toFixed(1) + 's';
+  btn.disabled = true;
   recordTimer = setInterval(function() {
     recordCountdown -= 0.1;
-    if (recordCountdown <= 0) { clearInterval(recordTimer); finishRecording(); }
-    else btn.textContent = '记录中 '+recordCountdown.toFixed(1)+'s';
+    if (recordCountdown <= 0) {
+      clearInterval(recordTimer);
+      recordTimer = null;
+      finishRecording();
+    } else {
+      btn.textContent = '记录中 ' + recordCountdown.toFixed(1) + 's';
+    }
   }, 100);
 }
 
-async function finishRecording() {
-  recording = false;
-  var r = await fetch('/api/record/stop', {method:'POST'});
-  var d = await r.json();
+function avgGrid(samples) {
+  var result = [];
+  for (var i = 0; i < SIZE; i++) { result[i] = []; for (var j = 0; j < SIZE; j++) result[i][j] = 0; }
+  if (samples.length === 0) return result;
+  for (var s = 0; s < samples.length; s++) {
+    for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++) result[i][j] += samples[s][i][j];
+  }
+  for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++) result[i][j] = Math.round(result[i][j] / samples.length);
+  return result;
+}
+
+function avgNumericParams(allParams) {
+  if (allParams.length === 0) return {};
+  var result = {};
+  var numericKeys = ['max','avg','area','std','peak_val','concentration','p95','gradient','head_ratio','neck_ratio','shoulder_ratio','neck_continuity'];
+  var stringKeys = ['peak_pos','neck_gap','center'];
+  for (var k = 0; k < numericKeys.length; k++) {
+    var sum = 0;
+    for (var p = 0; p < allParams.length; p++) sum += allParams[p][numericKeys[k]];
+    result[numericKeys[k]] = Math.round(sum / allParams.length);
+  }
+  for (var k = 0; k < stringKeys.length; k++) result[stringKeys[k]] = allParams[allParams.length-1][stringKeys[k]];
+  return result;
+}
+
+function finishRecording() {
+  isRecording = false;
   var btn = document.getElementById('recordBtn');
-  btn.textContent = '记录数据'; btn.disabled = false;
-  if (d.status === 'error') { alert(d.message); return; }
+  btn.textContent = '记录数据';
+  btn.disabled = false;
+  if (recordSamples.length < 2) { alert('采样数据不足'); return; }
+
+  var allParams = [];
+  for (var s = 0; s < recordSamples.length; s++) allParams.push(calculateParams(recordSamples[s]));
+  var avgParams = avgNumericParams(allParams);
+  var averagedGrid = avgGrid(recordSamples);
+  var comfort = getComfortData();
+
   var rec = {
     user_id: document.getElementById('recUserId').value || '',
     name: document.getElementById('recName').value || '',
@@ -448,49 +905,295 @@ async function finishRecording() {
     pillow_edge_hardness_l: document.getElementById('recEdgeHardnessL').value || '',
     pillow_edge_hardness_r: document.getElementById('recEdgeHardnessR').value || '',
     sleep_pos: document.getElementById('recSleepPos').value || '',
-    comfort: getComfortData(),
-    time: new Date().toLocaleTimeString('zh-CN', {hour12: false}),
+    comfort: comfort,
+    time: nowTimeString(),
     note: document.getElementById('recNote').value || '',
-    samples: d.samples, duration_s: d.duration,
-    avg_grid: JSON.stringify(d.avg_grid||[]),
+    samples: recordSamples.length,
+    duration_s: 3.0,
+    avg_grid: JSON.stringify(averagedGrid),
+    avg_max: avgParams.max,
+    avg_avg: avgParams.avg,
+    avg_area: avgParams.area,
+    avg_std: avgParams.std,
+    avg_peak_pos: avgParams.peak_pos,
+    avg_peak_val: avgParams.peak_val,
+    avg_concentration: avgParams.concentration,
+    avg_p95: avgParams.p95,
+    avg_gradient: avgParams.gradient,
+    avg_head_ratio: avgParams.head_ratio,
+    avg_neck_ratio: avgParams.neck_ratio,
+    avg_shoulder_ratio: avgParams.shoulder_ratio,
+    avg_neck_continuity: avgParams.neck_continuity,
+    avg_neck_gap: avgParams.neck_gap,
+    avg_center: avgParams.center
   };
-  for (var k in d.avg_params) rec['avg_'+k] = d.avg_params[k];
-  allRecords.push(rec);
-  fetch('/api/save', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({records:[rec]})});
-  loadHistory();
+
+  historyRecords.push(rec);
+  updateParams(avgParams);
+  drawHeatmap(averagedGrid);
+  saveHistory(); // This will call refreshHistory() after save completes
+}
+
+function nowTimeString() {
+  var d = new Date();
+  var pad = function(n){ return n < 10 ? '0'+n : ''+n; };
+  return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+
+function saveHistory() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/save_records', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.onload = function() {
+    if (xhr.status === 200) refreshHistory();
+    else alert('保存失败: ' + xhr.status);
+  };
+  xhr.onerror = function() { alert('保存失败，服务器未响应'); };
+  xhr.send(JSON.stringify({records: historyRecords}));
 }
 
 function loadHistory() {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', '/api/history', true);
-  xhr.onload = function() {
-    try {
-      var records = JSON.parse(xhr.responseText).history || [];
-      window._historyRecords = records;
-      var html = '';
-      records.slice().reverse().forEach(function(r, idx) {
-        var c = r.comfort || {};
-        var score = parseInt(c.comfort_total) || 0;
-        var cls = score >= 6 ? 'good' : (score >= 3 ? 'ok' : 'bad');
-        html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
-        html += '<div style="font-size:9px;opacity:0.8;">' + (r.time||'') + '</div>';
-        html += '<div style="font-size:10px;font-weight:600;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
-        html += '<div class="hscore">' + (c.comfort_total||'?') + '</div>';
-        html += '<div style="font-size:9px;">' + (r.pillow_id||'') + ' ' + (r.sleep_pos||'') + '</div>';
-        html += '<div class="hsub">仰' + (c.comfort_supine||0) + ' 侧' + (c.comfort_side||0) + ' 撑' + (c.comfort_neck||0) + '</div>';
-        html += '<div class="hsub">包' + (c.comfort_head||0) + ' 压' + (c.comfort_pressure||0) + ' 热' + (c.comfort_heat||0) + '</div>';
-        html += '</div>';
-      });
-      document.getElementById('historyCards').innerHTML = html;
-      document.getElementById('historyCount').textContent = records.length;
-    } catch(e) { document.getElementById('historyCards').innerHTML = '加载失败'; }
-  };
-  xhr.send();
+  fetch('data/records.json').then(function(r){return r.json();}).then(function(data){
+    historyRecords = data || [];
+    refreshHistoryUI();
+  }).catch(function(){ refreshHistoryUI(); });
 }
 
-function showDetail(idx) {
-  var records = window._historyRecords || [];
-  var r = records.slice().reverse()[idx];
+function showCrossMatrix() {
+  fetch('data/records.json').then(function(r){return r.json();}).then(function(records){
+  fetch('data/users.json').then(function(r2){return r2.json();}).then(function(users){
+  fetch('data/pillows.json').then(function(r3){return r3.json();}).then(function(pillows){
+    pillows=pillows.filter(function(p){return (p.material||'').indexOf('记忆棉')!==-1;});
+    var tested={};
+    for(var i=0;i<records.length;i++){var r=records[i];tested[(r.user_id||'')+'_'+(r.pillow_id||'')]=1;}
+    var miss=0;
+    var html='<table style="font-size:11px;"><tr><th>用户</th><th>枕头</th><th>状态</th></tr>';
+    for(var ui=0;ui<users.length;ui++){var u=users[ui];
+      for(var pi=0;pi<pillows.length;pi++){var p=pillows[pi];var ok=tested[u.id+'_'+p.id];if(!ok)miss++;
+        html+='<tr style="'+(ok?'':'background:rgba(255,69,58,0.06);')+'"><td>'+u.id+' '+u.name+'</td><td>'+p.id+' '+p.brand+'</td><td style="color:'+(ok?'#30d158':'#ff453a')+'">'+(ok?'✓ 已测试':'✗ 未测试')+'</td></tr>';
+      }}
+    var t=users.length*pillows.length;
+    html+='</table><div style="font-size:10px;color:rgba(255,255,255,0.5);margin-top:8px;">'+users.length+'人 × '+pillows.length+'款 = '+t+' 组合 | 已测'+(t-miss)+' | 未测'+miss+'</div>';
+    document.getElementById('modalTitle').textContent='交叉测试矩阵';
+    document.getElementById('modalContent').innerHTML=html;
+    document.getElementById('modalOverlay').classList.add('show');
+  });});});
+}
+
+function loadSharedRecords() {
+  loadHistory();
+}
+
+function dedupeRecords(records) {
+  var seen = {};
+  var result = [];
+  for (var i = 0; i < records.length; i++) {
+    var r = records[i];
+    var key = (r.time||'') + '_' + (r.user_id||'') + '_' + (r.pillow_id||'') + '_' + (r.samples||'');
+    if (!seen[key]) { seen[key] = 1; result.push(r); }
+  }
+  return result;
+}
+
+function refreshHistory() { loadHistory(); }
+
+function showAllUsers() {
+  var html = '<div style="margin-bottom:8px;"><button class="btn-sm" onclick="addUser()" style="background:var(--accent);color:#000;">新增被试</button></div>';
+  html += '<table><tr><th>ID</th><th>姓名</th><th>性别</th><th>年龄</th><th>身高</th><th>体重</th><th>肩宽</th><th>病史</th><th>颈痛</th><th>操作</th></tr>';
+  for (var i = 0; i < userData.length; i++) {
+    var u = userData[i];
+    html += '<tr><td>' + u.id + '</td><td>' + u.name + '</td><td>' + u.gender + '</td><td>' + u.age + '</td><td>' + u.height + '</td><td>' + u.weight + '</td><td>' + u.shoulder_width + '</td><td>' + (u.neck_history||'') + '</td><td>' + (u.neck_pain||'') + '</td>';
+    html += '<td><button class="btn-sm" onclick="editUser(' + i + ')" style="background:rgba(255,255,255,0.1);margin-right:4px;">编辑</button><button class="btn-sm" onclick="deleteUser(' + i + ')" style="background:var(--danger);">删除</button></td></tr>';
+  }
+  html += '</table>';
+  document.getElementById('modalTitle').textContent = '被试信息管理 (' + userData.length + '人)';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function showUserForm(idx, newId) {
+  var u = idx >= 0 ? userData[idx] : {id:newId||'',name:'',gender:'男',age:'',height:'',weight:'',shoulder_width:'',neck_curve:'[]',neck_history:'',neck_pain:''};
+  var html = '<div class="row"><label>ID:</label><input id="uf_id" value="' + u.id + '" ' + (idx>=0?'readonly':'readonly') + '></div>';
+  html += '<div class="row"><label>姓名:</label><input id="uf_name" value="' + u.name + '"></div>';
+  html += '<div class="row"><label>性别:</label><select id="uf_gender"><option ' + (u.gender==='男'?'selected':'') + '>男</option><option ' + (u.gender==='女'?'selected':'') + '>女</option></select></div>';
+  html += '<div class="row"><label>年龄:</label><input id="uf_age" value="' + u.age + '"></div>';
+  html += '<div class="row"><label>身高:</label><input id="uf_height" value="' + u.height + '"></div>';
+  html += '<div class="row"><label>体重:</label><input id="uf_weight" value="' + u.weight + '"></div>';
+  html += '<div class="row"><label>肩宽:</label><input id="uf_shoulder" value="' + u.shoulder_width + '"></div>';
+  html += '<div class="row"><label>颈曲:</label><textarea id="uf_curve" style="height:40px;font-size:10px;">' + (u.neck_curve||'[]') + '</textarea></div>';
+  html += '<div class="row"><label>病史:</label><input id="uf_history" value="' + (u.neck_history||'') + '"></div>';
+  html += '<div class="row"><label>颈痛:</label><input id="uf_pain" value="' + (u.neck_pain||'') + '"></div>';
+  html += '<div style="margin-top:8px;"><button class="btn-primary" onclick="saveUser(' + idx + ')">保存</button> <button class="btn-sm" onclick="showAllUsers()" style="background:rgba(255,255,255,0.1);">取消</button></div>';
+  document.getElementById('modalTitle').textContent = idx >= 0 ? '编辑被试' : '新增被试';
+  document.getElementById('modalContent').innerHTML = html;
+}
+function saveUser(idx) {
+  var u = {
+    id: document.getElementById('uf_id').value,
+    name: document.getElementById('uf_name').value,
+    gender: document.getElementById('uf_gender').value,
+    age: document.getElementById('uf_age').value,
+    height: document.getElementById('uf_height').value,
+    weight: document.getElementById('uf_weight').value,
+    shoulder_width: document.getElementById('uf_shoulder').value,
+    neck_curve: document.getElementById('uf_curve').value,
+    neck_history: document.getElementById('uf_history').value,
+    neck_pain: document.getElementById('uf_pain').value
+  };
+  if (!u.name) { alert('姓名必填'); return; }
+  if (idx >= 0) { userData[idx] = u; }
+  else { userData.push(u); }
+  saveUserData();
+  refreshUserDropdown();
+  showAllUsers();
+}
+function editUser(idx) { showUserForm(idx); }
+function deleteUser(idx) {
+  if (!confirm('确定删除 ' + userData[idx].name + '？')) return;
+  userData.splice(idx, 1);
+  saveUserData();
+  showAllUsers();
+}
+function saveUserData() { localStorage.setItem('pillow_users', JSON.stringify(userData)); }
+function refreshUserDropdown() {
+  var sel = document.getElementById('recUserId');
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">手动输入</option>';
+  for (var i = 0; i < userData.length; i++) {
+    var o = document.createElement('option');
+    o.value = userData[i].id; o.textContent = userData[i].id + ' - ' + userData[i].name;
+    sel.appendChild(o);
+  }
+  sel.value = cur;
+}
+
+function addUser() {
+  var maxNum = 0;
+  for (var i = 0; i < userData.length; i++) {
+    var m = userData[i].id.match(/S(\d+)/);
+    if (m) { var n = parseInt(m[1]); if (n > maxNum) maxNum = n; }
+  }
+  var newId = 'S' + ('000' + (maxNum + 1)).slice(-3);
+  showUserForm(-1, newId);
+}
+
+function showAllPillows() {
+  var html = '<div style="margin-bottom:8px;"><button class="btn-sm" onclick="addPillow()" style="background:var(--accent);color:#000;">新增枕头</button></div>';
+  html += '<table><tr><th>ID</th><th>品牌</th><th>材质</th><th>尺寸</th><th>后脑勺高</th><th>颈高</th><th>侧高</th><th>中心硬度</th><th>颈硬度</th><th>操作</th></tr>';
+  for (var i = 0; i < pillowData.length; i++) {
+    var p = pillowData[i];
+    html += '<tr><td>' + p.id + '</td><td>' + p.brand + '</td><td>' + p.material + '</td><td>' + p.size + '</td><td>' + p.head_height + '</td><td>' + p.neck_height + '</td><td>' + p.side_height + '</td><td>' + (p.center_hardness||'') + '</td><td>' + (p.neck_hardness||'') + '</td>';
+    html += '<td><button class="btn-sm" onclick="editPillow(' + i + ')" style="background:rgba(255,255,255,0.1);margin-right:4px;">编辑</button><button class="btn-sm" onclick="deletePillow(' + i + ')" style="background:var(--danger);">删除</button></td></tr>';
+  }
+  html += '</table>';
+  document.getElementById('modalTitle').textContent = '枕头信息管理 (' + pillowData.length + '款)';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function addPillow() {
+  var maxNum = 0;
+  for (var i = 0; i < pillowData.length; i++) {
+    var m = pillowData[i].id.match(/p(\d+)/);
+    if (m) { var n = parseInt(m[1]); if (n > maxNum) maxNum = n; }
+  }
+  var newId = 'p' + ('000' + (maxNum + 1)).slice(-3);
+  showPillowForm(-1, newId);
+}
+function editPillow(idx) { showPillowForm(idx); }
+function deletePillow(idx) {
+  if (!confirm('确定删除 ' + pillowData[idx].brand + '？')) return;
+  pillowData.splice(idx, 1);
+  savePillowData();
+  showAllPillows();
+}
+
+function showPillowForm(idx, newId) {
+  var p = idx >= 0 ? pillowData[idx] : {id:newId||'',brand:'',material:'',size:'',head_height:'',neck_height:'',side_height:'',center_hardness:'',neck_hardness:'',edge_hardness_l:'',edge_hardness_r:''};
+  var html = '<div class="row"><label>ID:</label><input id="pf_id" value="' + p.id + '" readonly></div>';
+  html += '<div class="row"><label>品牌:</label><input id="pf_brand" value="' + p.brand + '"></div>';
+  html += '<div class="row"><label>材质:</label><input id="pf_material" value="' + p.material + '"></div>';
+  html += '<div class="row"><label>尺寸:</label><input id="pf_size" value="' + p.size + '"></div>';
+  html += '<div class="row"><label>后脑勺高:</label><input id="pf_head" value="' + p.head_height + '"></div>';
+  html += '<div class="row"><label>颈椎高:</label><input id="pf_neck" value="' + p.neck_height + '"></div>';
+  html += '<div class="row"><label>侧睡高:</label><input id="pf_side" value="' + p.side_height + '"></div>';
+  html += '<div class="row"><label>中心硬度:</label><input id="pf_chard" value="' + (p.center_hardness||'') + '"></div>';
+  html += '<div class="row"><label>颈椎硬度:</label><input id="pf_nhard" value="' + (p.neck_hardness||'') + '"></div>';
+  html += '<div class="row"><label>左硬度:</label><input id="pf_lhard" value="' + (p.edge_hardness_l||'') + '"></div>';
+  html += '<div class="row"><label>右硬度:</label><input id="pf_rhard" value="' + (p.edge_hardness_r||'') + '"></div>';
+  html += '<div style="margin-top:8px;"><button class="btn-primary" onclick="savePillow(' + idx + ')">保存</button> <button class="btn-sm" onclick="showAllPillows()" style="background:rgba(255,255,255,0.1);">取消</button></div>';
+  document.getElementById('modalTitle').textContent = idx >= 0 ? '编辑枕头' : '新增枕头';
+  document.getElementById('modalContent').innerHTML = html;
+}
+
+function savePillow(idx) {
+  var p = {
+    id: document.getElementById('pf_id').value,
+    brand: document.getElementById('pf_brand').value,
+    material: document.getElementById('pf_material').value,
+    size: document.getElementById('pf_size').value,
+    head_height: document.getElementById('pf_head').value,
+    neck_height: document.getElementById('pf_neck').value,
+    side_height: document.getElementById('pf_side').value,
+    center_hardness: document.getElementById('pf_chard').value,
+    neck_hardness: document.getElementById('pf_nhard').value,
+    edge_hardness_l: document.getElementById('pf_lhard').value,
+    edge_hardness_r: document.getElementById('pf_rhard').value
+  };
+  if (!p.id || !p.brand) { alert('ID和品牌必填'); return; }
+  if (idx >= 0) pillowData[idx] = p;
+  else pillowData.push(p);
+  savePillowData();
+  refreshPillowDropdown();
+  showAllPillows();
+}
+
+function savePillowData() {
+  localStorage.setItem('pillow_pillows', JSON.stringify(pillowData));
+}
+function refreshPillowDropdown() {
+  var sel = document.getElementById('recPillowId');
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">自定义</option>';
+  for (var i = 0; i < pillowData.length; i++) {
+    var o = document.createElement('option');
+    o.value = pillowData[i].id;
+    o.textContent = pillowData[i].id + ' - ' + pillowData[i].brand;
+    sel.appendChild(o);
+  }
+  sel.value = cur;
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function refreshHistoryUI() {
+  var records = historyRecords;
+  var html = '';
+  for (var idx = records.length - 1; idx >= 0; idx--) {
+    var r = records[idx];
+    var c = r.comfort || {};
+    var cl = computeComfortLabel(c);
+    var score = cl.score;
+    var cls = score >= 4.2 ? 'great' : (score >= 3.4 ? 'good' : (score >= 2.6 ? 'ok' : (score >= 1.8 ? 'poor' : 'bad')));
+    var shortLabel = score >= 4.2 ? '惊喜' : (score >= 3.4 ? '不错' : (score >= 2.6 ? '能接受' : (score >= 1.8 ? '差' : '很差')));
+    html += '<div class="history-row ' + cls + '" onclick="showDetail(' + idx + ')">';
+    html += '<div style="font-size:8px;opacity:0.8;font-weight:600;">' + (r.time||'') + '</div>';
+    html += '<div style="font-size:9px;font-weight:700;">' + (r.user_id||'') + ' ' + (r.name||'') + '</div>';
+    html += '<div class="hscore">' + shortLabel + '</div>';
+    html += '<div style="font-size:8px;font-weight:600;">' + (r.pillow_id||'') + ' ' + (r.pillow_brand||'') + '</div>';
+    html += '<div style="font-size:8px;font-weight:600;">' + (r.sleep_pos||'') + '</div>';
+    html += '</div>';
+  }
+  document.getElementById('historyCards').innerHTML = html;
+  document.getElementById('historyCount').textContent = records.length;
+}
+
+function showDetail(historyIdx) {
+  var records = historyRecords;
+  var r = records[historyIdx];
   if (!r) return;
 
   document.getElementById('recUserId').value = r.user_id || '';
@@ -503,7 +1206,6 @@ function showDetail(idx) {
   document.getElementById('recNeckHistory').value = r.neck_history || '';
   document.getElementById('recNeckPain').value = r.neck_pain || '';
   try { drawNeckCurve(JSON.parse(r.neck_curve||'[]')); } catch(e) {}
-  document.getElementById('neckCurveChart').scrollIntoView({behavior:'smooth', block:'center'});
 
   document.getElementById('recPillowId').value = r.pillow_id || '';
   document.getElementById('recBrand').value = r.pillow_brand || '';
@@ -518,17 +1220,19 @@ function showDetail(idx) {
   document.getElementById('recEdgeHardnessR').value = r.pillow_edge_hardness_r || '';
 
   var c = r.comfort || {};
-  document.getElementById('comfort_overall').value = c.comfort_overall || 0;
-  document.getElementById('comfort_supine').value = c.comfort_supine || 0;
-  document.getElementById('comfort_side').value = c.comfort_side || 0;
-  document.getElementById('comfort_neck').value = c.comfort_neck || 0;
-  document.getElementById('comfort_head').value = c.comfort_head || 0;
-  document.getElementById('comfort_even').value = c.comfort_even || 0;
-  document.getElementById('comfort_fall').value = c.comfort_fall || 0;
-  document.getElementById('comfort_turn').value = c.comfort_turn || 0;
-  document.getElementById('comfort_pressure').value = c.comfort_pressure || 0;
-  document.getElementById('comfort_heat').value = c.comfort_heat || 0;
+  document.getElementById('comfort_overall').value = convertOldScore(c.comfort_overall);
+  document.getElementById('comfort_supine').value = convertOldScore(c.comfort_supine);
+  document.getElementById('comfort_side').value = convertOldScore(c.comfort_side);
+  document.getElementById('comfort_neck').value = convertOldScore(c.comfort_neck);
+  document.getElementById('comfort_head').value = convertOldScore(c.comfort_head);
+  document.getElementById('comfort_even').value = convertOldScore(c.comfort_even);
+  document.getElementById('comfort_fall').value = convertOldScore(c.comfort_fall);
+  document.getElementById('comfort_turn').value = convertOldScore(c.comfort_turn);
+  document.getElementById('comfort_pressure').value = convertOldScore(c.comfort_pressure);
+  document.getElementById('comfort_heat').value = convertOldScore(c.comfort_heat);
   updateComfortTotal();
+  var cl = computeComfortLabel(c);
+  document.getElementById('comfortTotal').textContent = cl.label;
 
   document.getElementById('recSleepPos').value = r.sleep_pos || '仰睡';
   document.getElementById('recNote').value = r.note || '';
@@ -543,60 +1247,158 @@ function showDetail(idx) {
     center: r.avg_center||'0%,0%'
   });
 
-  try { drawHeatmap(JSON.parse(r.avg_grid||'[]')); } catch(e) { drawHeatmap(currentGrid); }
+  try {
+    var g = JSON.parse(r.avg_grid||'[]');
+    if (g.length) drawHeatmap(g); else drawHeatmap(currentGrid);
+  } catch(e) { drawHeatmap(currentGrid); }
 
-  document.querySelectorAll('#historyCards .history-row').forEach(function(c, i) { if (i === idx) c.classList.add('active'); else c.classList.remove('active'); });
+  var cards = document.querySelectorAll('#historyCards .history-row');
+  for (var i = 0; i < cards.length; i++) {
+    if (i === (historyRecords.length - 1 - historyIdx)) cards[i].classList.add('active');
+    else cards[i].classList.remove('active');
+  }
 }
 
-async function exportData() {
-  if (allRecords.length === 0) { alert('暂无记录'); return; }
-  await fetch('/api/save', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({records:allRecords})});
-  var r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({records:allRecords})});
-  var d = await r.json();
-  if (d.status === 'ok') alert('已导出 '+d.count+' 条记录');
-  else alert('导出失败: '+d.message);
+function exportCSV() {
+  if (historyRecords.length === 0) { alert('暂无记录'); return; }
+  var gridFields = [];
+  for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++) gridFields.push('g_' + i + '_' + j);
+
+  var fields = ['user_id','name','gender','age','height','weight',
+    'shoulder_width','neck_curve','neck_history','neck_pain',
+    'pillow_id','pillow_brand','pillow_material','pillow_size',
+    'pillow_head_height','pillow_neck_height','pillow_side_height',
+    'pillow_center_hardness','pillow_neck_hardness',
+    'pillow_edge_hardness_l','pillow_edge_hardness_r',
+    'sleep_pos','comfort_total',
+    'comfort_overall','comfort_neck','comfort_head',
+    'comfort_supine','comfort_side','comfort_even',
+    'comfort_fall','comfort_turn','comfort_pressure','comfort_heat',
+    'time','note','samples','duration_s',
+    'avg_max','avg_avg','avg_area','avg_std','avg_peak_pos',
+    'avg_peak_val','avg_concentration','avg_p95','avg_gradient',
+    'avg_head_ratio','avg_neck_ratio','avg_shoulder_ratio',
+    'avg_neck_continuity','avg_neck_gap','avg_center'];
+
+  var baseLen = fields.length;
+  var allFields = fields.concat(gridFields);
+
+  var lines = [];
+  lines.push(allFields.join(','));
+
+  for (var r = 0; r < historyRecords.length; r++) {
+    var rec = historyRecords[r];
+    var rowVals = [];
+    for (var f = 0; f < baseLen; f++) {
+      var val = rec[fields[f]] || '';
+      if (typeof val === 'string' && (val.indexOf(',') !== -1 || val.indexOf('"') !== -1 || val.indexOf('\n') !== -1)) {
+        val = '"' + val.replace(/"/g, '""') + '"';
+      }
+      rowVals.push(val);
+    }
+    var comfort = rec.comfort || {};
+    if (typeof comfort === 'object') {
+      for (var k in comfort) {
+        var fieldName = (k.indexOf('comfort_') === 0) ? k : ('comfort_' + k);
+        var idx = fields.indexOf(fieldName);
+        if (idx >= 0 && idx < baseLen) rowVals[idx] = comfort[k];
+      }
+    }
+    var avgGrid = [];
+    try { avgGrid = JSON.parse(rec.avg_grid || '[]'); } catch(e) {}
+    for (var i = 0; i < SIZE; i++) {
+      for (var j = 0; j < SIZE; j++) {
+        var gv = (avgGrid[i] && avgGrid[i][j] !== undefined) ? avgGrid[i][j] : 0;
+        rowVals.push(gv);
+      }
+    }
+    lines.push(rowVals.join(','));
+  }
+
+  var csv = lines.join('\n');
+  var blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  var now = new Date();
+  var pad = function(n){ return n < 10 ? '0'+n : ''+n; };
+  a.download = 'pillow_test_' + now.getFullYear() + pad(now.getMonth()+1) + pad(now.getDate()) + '_' + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds()) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
-function refreshHistory() { loadHistory(); }
+function onSmoothChange() { smoothEnabled = document.getElementById('smooth').checked; }
+
+function onSmoothRange() {
+  smoothFactor = document.getElementById('smoothRange').value/100;
+  document.getElementById('smoothVal').textContent = document.getElementById('smoothRange').value + '%';
+}
 
 function resetToTest() {
-  // Clear subject fields
-  document.getElementById('recUserId').value = ''; document.getElementById('recName').value = '';
-  document.getElementById('recGender').value = ''; document.getElementById('recAge').value = '';
-  document.getElementById('recHeight').value = ''; document.getElementById('recWeight').value = '';
-  document.getElementById('recShoulder').value = ''; document.getElementById('recNeckHistory').value = '';
-  document.getElementById('recNeckPain').value = '';
-  ['recName','recGender','recAge','recHeight','recWeight','recShoulder','recNeckHistory','recNeckPain'].forEach(function(f){ document.getElementById(f).readOnly = false; });
+  document.getElementById('recUserId').value = '';
+  var userFields = ['recName','recGender','recAge','recHeight','recWeight','recShoulder','recNeckHistory','recNeckPain'];
+  for (var f = 0; f < userFields.length; f++) {
+    document.getElementById(userFields[f]).value = '';
+    document.getElementById(userFields[f]).readOnly = false;
+  }
   drawNeckCurve([]);
+  currentNeckCurve = '[]';
 
-  // Clear pillow fields
   document.getElementById('recPillowId').value = '';
-  ['recBrand','recMaterial','recPillowSize','recHeadHeight','recNeckHeight','recSideHeight','recCenterHardness','recNeckHardness','recEdgeHardnessL','recEdgeHardnessR'].forEach(function(f){
-    document.getElementById(f).value = ''; document.getElementById(f).readOnly = false;
-  });
+  var pillowFields = ['recBrand','recMaterial','recPillowSize','recHeadHeight','recNeckHeight','recSideHeight','recCenterHardness','recNeckHardness','recEdgeHardnessL','recEdgeHardnessR'];
+  for (var f = 0; f < pillowFields.length; f++) {
+    document.getElementById(pillowFields[f]).value = '';
+    document.getElementById(pillowFields[f]).readOnly = false;
+  }
 
-  // Reset comfort
-  ['comfort_overall','comfort_supine','comfort_side','comfort_neck','comfort_head','comfort_even','comfort_fall','comfort_turn','comfort_pressure','comfort_heat'].forEach(function(id){
-    document.getElementById(id).value = 0;
-  });
+  var comfortIds = ['comfort_overall','comfort_supine','comfort_side','comfort_neck','comfort_head','comfort_even','comfort_fall','comfort_turn','comfort_pressure','comfort_heat'];
+  for (var f = 0; f < comfortIds.length; f++) document.getElementById(comfortIds[f]).value = 0;
   updateComfortTotal();
 
-  // Reset params display
   updateParams({max:0,avg:0,area:0,std:0,peak_pos:'(0,0)',peak_val:0,concentration:0,p95:0,gradient:0,head_ratio:0,neck_ratio:0,shoulder_ratio:0,neck_continuity:0,neck_gap:'无',center:'0%,0%'});
 
-  // Reset heatmap
-  currentGrid = Array.from({length: SIZE}, () => Array(SIZE).fill(0));
+  for (var i = 0; i < SIZE; i++) for (var j = 0; j < SIZE; j++) currentGrid[i][j] = 0;
   drawHeatmap(currentGrid);
 
-  // Deselect history cards
-  document.querySelectorAll('#historyCards .history-row').forEach(function(c){ c.classList.remove('active'); });
+  var cards = document.querySelectorAll('#historyCards .history-row');
+  for (var i = 0; i < cards.length; i++) cards[i].classList.remove('active');
 }
 
-refreshPorts();
+function exportHistory() {
+  if (!historyRecords.length) { alert('暂无历史记录'); return; }
+  var blob = new Blob([JSON.stringify(historyRecords, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'records.json';
+  a.click();
+}
+
+function importHistory() {
+  alert('请将下载的 records.json 替换 data/records.json 后刷新页面');
+}
+
+document.getElementById('showVals').addEventListener('change', function(){
+  showValues = this.checked;
+  drawHeatmap(currentGrid);
+});
+
+buildParamGrid();
 loadPillows();
 loadUsers();
-loadHistory();
+refreshHistory();
+updateComfortTotal();
 drawHeatmap(currentGrid);
+// Auto-load shared records on first visit or when file is newer
+  fetch('data/records.json').then(function(r){ return r.json(); }).then(function(shared){
+    if (shared && shared.length) {
+      var existing = JSON.parse(localStorage.getItem('pillow_records') || '[]');
+      var merged = dedupeRecords(existing.concat(shared));
+      localStorage.setItem('pillow_records', JSON.stringify(merged));
+      loadHistory();
+    }
+  }).catch(function(){});
 </script>
 </body>
 </html>
