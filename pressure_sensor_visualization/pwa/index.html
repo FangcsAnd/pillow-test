@@ -1218,7 +1218,7 @@ function saveNewRecord(rec) {
 }
 
 function loadHistory() {
-  fetch('data/records.json').then(function(r){return r.json();}).then(function(data){
+  fetch('data/records.json?t=' + Date.now()).then(function(r){return r.json();}).then(function(data){
     historyRecords = data || [];
     buildComfortModel();
     refreshHistoryUI();
@@ -1226,9 +1226,9 @@ function loadHistory() {
 }
 
 function showCrossMatrix() {
-  fetch('data/records.json').then(function(r){return r.json();}).then(function(records){
-  fetch('data/users.json').then(function(r2){return r2.json();}).then(function(users){
-  fetch('data/pillows.json').then(function(r3){return r3.json();}).then(function(pillows){
+  fetch('data/records.json?t=' + Date.now()).then(function(r){return r.json();}).then(function(records){
+  fetch('data/users.json?t=' + Date.now()).then(function(r2){return r2.json();}).then(function(users){
+  fetch('data/pillows.json?t=' + Date.now()).then(function(r3){return r3.json();}).then(function(pillows){
     pillows=pillows.filter(function(p){return (p.material||'').indexOf('记忆棉')!==-1;});
     var tested={};
     for(var i=0;i<records.length;i++){var r=records[i];tested[(r.user_id||'')+'_'+(r.pillow_id||'')]=1;}
@@ -1665,7 +1665,7 @@ refreshHistory();
 updateComfortTotal();
 drawHeatmap(currentGrid);
 // Auto-load shared records on first visit or when file is newer
-  fetch('data/records.json').then(function(r){ return r.json(); }).then(function(shared){
+  fetch('data/records.json?t=' + Date.now()).then(function(r){ return r.json(); }).then(function(shared){
     if (shared && shared.length) {
       var existing = JSON.parse(localStorage.getItem('pillow_records') || '[]');
       var merged = dedupeRecords(existing.concat(shared));
